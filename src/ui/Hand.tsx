@@ -14,29 +14,34 @@ export function PlayerHand() {
       <AnimatePresence>
         {hand.map((h, i) => {
           const spread = (i - (n - 1) / 2) / Math.max(1, n - 1)
-          const rotate = spread * 12
-          const y = Math.abs(spread) * 16
+          const rotate = spread * 8
+          const y = Math.abs(spread) * 14
           const playable = myTurn && canPlay(st.game, 'player', h.uid)
           return (
             <motion.div
               key={h.uid}
-              layout
               layoutId={`unit-${h.uid}`}
+              layout="position"
               className={`hand-card ${playable ? 'playable' : 'unplayable'}`}
-              initial={{ y: 160, opacity: 0, rotate: 0 }}
-              animate={{ y, opacity: 1, rotate }}
-              exit={{ y: -40, opacity: 0, scale: 0.8, transition: { duration: 0.25 } }}
-              transition={{ type: 'spring', stiffness: 300, damping: 28 }}
-              whileHover={{ y: y - 46, rotate: 0, scale: 1.14, zIndex: 20, transition: { duration: 0.18 } }}
-              style={{ transformOrigin: 'bottom center' }}
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0, transition: { duration: 0.22 } }}
               role="button"
-              aria-label={`jogar carta ${h.defId}`}
+              aria-label={`jogar ficha ${h.defId}`}
               onClick={(e) => {
                 e.stopPropagation()
                 clickHandCard(h.uid)
               }}
             >
-              <CardView defId={h.defId} size="hand" showCost />
+              <motion.div
+                initial={{ y: 170 }}
+                animate={{ y }}
+                whileHover={{ y: y - 56, scale: 1.12 }}
+                transition={{ type: 'spring', stiffness: 300, damping: 28 }}
+                style={{ rotate, transformOrigin: 'bottom center' }}
+              >
+                <CardView defId={h.defId} size="hand" showCost />
+              </motion.div>
             </motion.div>
           )
         })}
@@ -55,9 +60,9 @@ export function AiHand() {
           <motion.div
             key={i}
             className="card-back"
-            initial={{ y: -40, opacity: 0 }}
+            initial={{ y: -30, opacity: 0 }}
             animate={{ y: 0, opacity: 1 }}
-            exit={{ y: 20, opacity: 0 }}
+            exit={{ y: 16, opacity: 0 }}
             transition={{ type: 'spring', stiffness: 300, damping: 26 }}
           />
         ))}

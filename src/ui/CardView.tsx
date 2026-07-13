@@ -1,32 +1,13 @@
 import { motion } from 'motion/react'
 import { useEffect, useRef, useState } from 'react'
 import { getDef } from '../engine/cards'
-import type { Keyword } from '../engine/types'
-import { CardArt } from './CardArt'
+import type { Face, Keyword } from '../engine/types'
+import { CharacterArt } from './characters'
 
-export const SIGILS: Record<string, string> = {
-  foton: 'γ',
-  neutrino: 'ν',
-  sentinela: '◈',
-  eletron: 'ε',
-  gato: 'Ψ',
-  colapsador: '◎',
-  ondapiloto: '≈',
-  quasar: '✺',
-  singularidade: '◉',
-  medicao: '⌖',
-  polarizacao: '⇅',
-  emaranhar: '∞',
-  tunel: '⤳',
-  pulso: '↯',
-  decoerencia: '∅',
-  flutuacao: '∿',
-}
-
-const KW_LABEL: Record<Keyword, string> = {
-  barreira: 'barreira',
-  veloz: 'veloz',
-  fantasma: 'fantasma',
+export const KW_TIP: Record<Keyword, string> = {
+  barreira: 'Barreira: os inimigos são obrigados a atacar este sujeito antes de qualquer outro alvo.',
+  veloz: 'Veloz: pode atacar no mesmo turno em que entra em campo.',
+  fantasma: 'Fantasma: ignora Barreira — pode atacar qualquer alvo, inclusive o Observador inimigo.',
 }
 
 interface CardViewProps {
@@ -42,16 +23,16 @@ export function CardView({ defId, collapsed = null, hp, size, tempKeywords = [],
   const def = getDef(defId)
   const isCreature = def.type === 'criatura'
 
-  // revelação do colapso: cintilação rápida → flash → face final
-  const [reveal, setReveal] = useState<'idle' | 'flicker' | 'burst'>('idle')
+  // revelação do colapso: pulso acelerado → carimbo OBSERVADO → linha ativa acesa
+  const [stage, setStage] = useState<'idle' | 'flicker' | 'stamp'>('idle')
   const prev = useRef<0 | 1 | null>(collapsed)
   useEffect(() => {
     const was = prev.current
     prev.current = collapsed
     if (was === null && collapsed !== null) {
-      setReveal('flicker')
-      const t1 = setTimeout(() => setReveal('burst'), 470)
-      const t2 = setTimeout(() => setReveal('idle'), 1150)
+      setStage('flicker')
+      const t1 = setTimeout(() => setStage('stamp'), 380)
+      const t2 = setTimeout(() => setStage('idle'), 1400)
       return () => {
         clearTimeout(t1)
         clearTimeout(t2)
@@ -59,121 +40,125 @@ export function CardView({ defId, collapsed = null, hp, size, tempKeywords = [],
     }
   }, [collapsed])
 
-  const showSuperposed = isCreature && (collapsed === null || reveal === 'flicker')
-  const face = !showSuperposed && collapsed !== null ? def.faces![collapsed] : null
+  const showSuperposed = isCreature && (collapsed === null || stage === 'flicker')
 
-  const frameClass = [
+  const classes = [
     'card',
     `size-${size}`,
-    showSuperposed ? 'superposed superposed-frame' : '',
-    reveal === 'flicker' ? 'collapsing' : '',
+    showSuperposed ? 'superposed' : '',
+    stage === 'flicker' ? 'collapsing-fast' : '',
   ]
     .filter(Boolean)
     .join(' ')
 
   return (
-    <div className={frameClass}>
-      <div className="card-inner">
+    <div className={classes}>
+      <div className="card-head">
         <div className="card-name">{def.name}</div>
-        <div className="card-art">
-          {isCreature ? (
-            showSuperposed ? (
-              <>
-                <FaceArt idx={0} label={def.faces![0].label} sigil={SIGILS[defId] ?? '✦'} defId={defId} />
-                <FaceArt idx={1} label={def.faces![1].label} sigil={SIGILS[defId] ?? '✦'} defId={defId} />
-              </>
-            ) : (
-              <FaceArt idx={collapsed!} label={face!.label} sigil={SIGILS[defId] ?? '✦'} defId={defId} />
-            )
-          ) : (
-            <div className="card-face-art" style={{ color: 'var(--entangle)' }}>
-              <CardArt defId={defId} />
-              <span className="face-sigil">{SIGILS[defId] ?? '✦'}</span>
-            </div>
-          )}
-          {isCreature && (
-            <div className="kw-row">
-              {face?.keywords.map((k) => (
-                <span key={k} className="kw">
-                  {KW_LABEL[k]}
-                </span>
-              ))}
+        <div className="card-title">{def.title}</div>
+      </div>
+
+      <div className="card-window">
+        <CharacterArt defId={defId} />
+      </div>
+
+      {isCreature && (
+        <div className="state-rows">
+          <StateRow idx={0} face={def.faces![0]} collapsed={showSuperposed ? null : collapsed} />
+          <StateRow idx={1} face={def.faces![1]} collapsed={showSuperposed ? null : collapsed} />
+          {tempKeywords.length > 0 && (
+            <div style={{ display: 'flex', gap: '0.25rem', justifyContent: 'center' }}>
               {tempKeywords.map((k) => (
-                <span key={`t-${k}`} className="kw kw-temp">
-                  {KW_LABEL[k]}
+                <span key={k} className="kw kw-temp" data-tip={`${KW_TIP[k]} (só neste turno)`}>
+                  {k}
                 </span>
               ))}
             </div>
           )}
         </div>
-        {size === 'hand' && <div className="card-text">{def.text}</div>}
-      </div>
+      )}
 
-      {showCost && <div className="card-cost">{def.cost}</div>}
+      {size === 'hand' && <div className="card-text">{def.text}</div>}
+      {size === 'hand' && (
+        <div className="card-footer">
+          <span>IMV·{def.id}</span>
+          <span>{isCreature ? 'sujeito' : 'protocolo'}</span>
+        </div>
+      )}
 
-      {isCreature &&
-        (showSuperposed ? (
-          <>
-            <div className="stat stat-attack">
-              <span className="stat-range">
-                {def.faces![0].attack}·{def.faces![1].attack}
-              </span>
-            </div>
-            <div className="stat stat-health">
-              <span className="stat-range">
-                {def.faces![0].health}·{def.faces![1].health}
-              </span>
-            </div>
-          </>
-        ) : (
-          <>
-            <div className="stat stat-attack">{face!.attack}</div>
-            <div className={`stat stat-health${hp !== undefined && hp < face!.health ? ' hurt' : ''}`}>
-              {hp ?? face!.health}
-            </div>
-          </>
-        ))}
+      {showCost && (
+        <div className="card-cost" data-tip={`Custa ${def.cost} qubit${def.cost > 1 ? 's' : ''} para jogar`}>
+          {def.cost}
+        </div>
+      )}
 
-      {reveal === 'burst' && <CollapseBurst face={collapsed ?? 0} />}
+      {showSuperposed && (
+        <div className="super-seal" data-tip="Em superposição: os dois estados coexistem até alguém observar.">
+          ?
+        </div>
+      )}
+
+      {isCreature && !showSuperposed && collapsed !== null && hp !== undefined && (
+        <div className={`hp-now${hp < def.faces![collapsed].health ? ' hurt' : ''}`} data-tip="Vida atual">
+          {hp}
+        </div>
+      )}
+
+      {stage === 'stamp' && collapsed !== null && <StampFx face={collapsed} />}
     </div>
   )
 }
 
-function FaceArt({ idx, label, sigil, defId }: { idx: 0 | 1; label: string; sigil: string; defId: string }) {
+function StateRow({ idx, face, collapsed }: { idx: 0 | 1; face: Face; collapsed: 0 | 1 | null }) {
+  const active = collapsed === idx
+  const dead = collapsed !== null && collapsed !== idx
   return (
-    <div className={`card-face-art face-${idx}`}>
-      <CardArt defId={defId} />
-      <span className="face-label">{label}</span>
-      <span className="face-sigil">{sigil}</span>
+    <div className={`state-row state-${idx}${active ? ' active-row' : ''}${dead ? ' dead-row' : ''}`}>
+      <span className="state-tag">{idx === 0 ? 'A' : 'B'}</span>
+      <span className="state-name">{face.label}</span>
+      {face.keywords.map((k) => (
+        <span key={k} className="kw" data-tip={KW_TIP[k]}>
+          {k}
+        </span>
+      ))}
+      <span className="state-stats">
+        <span className="atk">{face.attack}</span>/<span className="hp">{face.health}</span>
+      </span>
     </div>
   )
 }
 
-function CollapseBurst({ face }: { face: 0 | 1 }) {
-  const color = face === 0 ? 'var(--particle)' : 'var(--wave)'
-  const particles = Array.from({ length: 12 }, (_, i) => {
-    const angle = (i / 12) * Math.PI * 2 + Math.random() * 0.5
-    const dist = 46 + Math.random() * 46
-    return { x: Math.cos(angle) * dist, y: Math.sin(angle) * dist, key: i }
+function StampFx({ face }: { face: 0 | 1 }) {
+  const splats = Array.from({ length: 7 }, (_, i) => {
+    const a = (i / 7) * Math.PI * 2 + 0.7
+    return {
+      key: i,
+      x: Math.cos(a) * (34 + (i % 3) * 16),
+      y: Math.sin(a) * (30 + (i % 2) * 18),
+      s: 3 + (i % 3) * 2.5,
+    }
   })
+  const color = face === 0 ? 'var(--particle)' : 'var(--wave)'
   return (
-    <>
+    <div className="stamp-overlay">
       <motion.div
-        className="collapse-flash"
-        initial={{ opacity: 0.95 }}
-        animate={{ opacity: 0 }}
-        transition={{ duration: 0.5, ease: 'easeOut' }}
-      />
-      {particles.map((p) => (
+        className={`stamp-mark${face === 1 ? ' stamp-b' : ''}`}
+        initial={{ scale: 2.6, opacity: 0, rotate: -30 }}
+        animate={{ scale: 1, opacity: 1, rotate: -14 }}
+        transition={{ duration: 0.22, ease: [0.6, 0, 0.8, 0.4] }}
+      >
+        Observado
+      </motion.div>
+      {splats.map((p) => (
         <motion.span
           key={p.key}
-          className="collapse-particle"
-          style={{ background: p.key % 3 === 0 ? 'var(--flash)' : color }}
-          initial={{ x: 0, y: 0, opacity: 1, scale: 1 }}
-          animate={{ x: p.x, y: p.y, opacity: 0, scale: 0.2 }}
-          transition={{ duration: 0.65, ease: [0.22, 1, 0.36, 1] }}
+          className="ink-splat"
+          style={{ background: color, width: p.s, height: p.s, left: '50%', top: '50%' }}
+          initial={{ x: 0, y: 0, opacity: 0 }}
+          animate={{ x: p.x, y: p.y, opacity: [0, 1, 1, 0.7] }}
+          transition={{ duration: 0.4, delay: 0.18, ease: [0.22, 1, 0.36, 1] }}
         />
       ))}
-    </>
+    </div>
   )
 }

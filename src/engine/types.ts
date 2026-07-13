@@ -20,7 +20,10 @@ export type SpellKind =
 
 export interface CardDef {
   id: string
+  /** nome do personagem, curto e grande na ficha (ex.: "O Gato") */
   name: string
+  /** epíteto de catálogo (ex.: "Sujeito nº 13") */
+  title: string
   cost: number
   type: 'criatura' | 'feitico'
   faces?: [Face, Face]
@@ -30,7 +33,8 @@ export interface CardDef {
   /** batalha de entrada de criatura */
   onPlay?: 'colapsarInimigo'
   text: string
-  flavor?: string
+  /** uma linha de lore, voz do Instituto */
+  bio: string
 }
 
 export interface Creature {
@@ -58,8 +62,9 @@ export interface SideState {
   qubits: number
   maxQubits: number
   deck: string[]
+  /** fichas usadas: protocolos lançados e sujeitos mortos; reembaralha quando o deck esvazia */
+  discard: string[]
   hand: HandCard[]
-  fatigue: number
   heroPowerUsed: boolean
 }
 
@@ -79,7 +84,7 @@ export type TargetRef = { kind: 'creature'; uid: number } | { kind: 'hero'; owne
 export type GameEvent =
   | { t: 'draw'; owner: Owner; count: number }
   | { t: 'burn'; owner: Owner; defId: string }
-  | { t: 'fatigue'; owner: Owner; amount: number }
+  | { t: 'reshuffle'; owner: Owner }
   | { t: 'summon'; uid: number }
   | { t: 'collapse'; uid: number; face: 0 | 1; forced: boolean }
   | { t: 'damage'; target: TargetRef; amount: number }
@@ -101,3 +106,5 @@ export const MAX_HAND = 8
 export const MAX_QUBITS = 8
 export const START_COHERENCE = 25
 export const HERO_POWER_COST = 2
+/** no início do turno, compra até ter esta quantidade de cartas (mínimo 1 compra) */
+export const HAND_REFILL = 5

@@ -1,6 +1,14 @@
 import { AnimatePresence, motion } from 'motion/react'
-import { useEffect, useRef, useState } from 'react'
-import { refRegistry, restart, useStore } from '../state/store'
+import { useEffect, useState } from 'react'
+import {
+  dismissAllMemos,
+  dismissMemo,
+  refRegistry,
+  restart,
+  toggleManual,
+  useStore,
+} from '../state/store'
+import { MEMOS } from './didactics'
 
 export function TurnBanner() {
   const st = useStore()
@@ -12,15 +20,16 @@ export function TurnBanner() {
         {b && (
           <motion.div
             key={`${b.owner}-${b.turn}`}
-            initial={{ opacity: 0, scale: 0.85, filter: 'blur(10px)' }}
-            animate={{ opacity: 1, scale: 1, filter: 'blur(0px)' }}
-            exit={{ opacity: 0, scale: 1.1, filter: 'blur(8px)' }}
-            transition={{ duration: 0.45, ease: [0.22, 1, 0.36, 1] }}
+            className="telegram"
+            initial={{ opacity: 0, x: -70, rotate: -1.5 }}
+            animate={{ opacity: 1, x: 0, rotate: -0.5 }}
+            exit={{ opacity: 0, x: 70 }}
+            transition={{ duration: 0.4, ease: [0.22, 1, 0.36, 1] }}
           >
-            <div className={`turn-banner-text ${mine ? 'mine' : 'theirs'}`}>
-              {mine ? 'Seu turno' : 'Turno da IA'}
+            <div className={`telegram-text ${mine ? 'mine' : 'theirs'}`}>
+              {mine ? 'Seu plantão' : 'Vez do Autômato'}
             </div>
-            <div className="turn-banner-sub">turno {b.turn}</div>
+            <div className="telegram-sub">— turno {b.turn} · instituto meia-vida —</div>
           </motion.div>
         )}
       </AnimatePresence>
@@ -28,7 +37,7 @@ export function TurnBanner() {
   )
 }
 
-interface Line {
+interface StringLine {
   x1: number
   y1: number
   x2: number
@@ -36,10 +45,10 @@ interface Line {
   key: string
 }
 
-/** Linhas de emaranhamento entre pares vinculados, recalculadas a cada frame. */
+/** Barbante vermelho de mural de evidências entre sujeitos emaranhados. */
 export function EntangleLayer() {
   const st = useStore()
-  const [lines, setLines] = useState<Line[]>([])
+  const [lines, setLines] = useState<StringLine[]>([])
   const pairs: Array<[number, number]> = []
   for (const c of [...st.game.board.player, ...st.game.board.ai]) {
     if (c.entangledWith !== null && c.uid < c.entangledWith) pairs.push([c.uid, c.entangledWith])
@@ -53,7 +62,7 @@ export function EntangleLayer() {
     }
     let raf = 0
     const tick = () => {
-      const next: Line[] = []
+      const next: StringLine[] = []
       for (const part of pairsKey.split(',')) {
         const [a, b] = part.split('-').map(Number)
         const ea = refRegistry.get(`c-${a}`)
@@ -81,14 +90,21 @@ export function EntangleLayer() {
     <svg className="entangle-svg">
       {lines.map((l) => {
         const mx = (l.x1 + l.x2) / 2
-        const my = (l.y1 + l.y2) / 2 - 30
-        return <path key={l.key} className="entangle-line" d={`M ${l.x1} ${l.y1} Q ${mx} ${my} ${l.x2} ${l.y2}`} />
+        const sag = Math.min(46, Math.abs(l.x2 - l.x1) * 0.12 + 18)
+        const my = (l.y1 + l.y2) / 2 + sag
+        return (
+          <g key={l.key}>
+            <path className="string-line" d={`M ${l.x1} ${l.y1} Q ${mx} ${my} ${l.x2} ${l.y2}`} />
+            <circle className="string-pin" cx={l.x1} cy={l.y1} r="5" />
+            <circle className="string-pin" cx={l.x2} cy={l.y2} r="5" />
+          </g>
+        )
       })}
     </svg>
   )
 }
 
-/** Seta de mira: da origem da ação até o cursor. */
+/** Linha de mira: traço de lápis da origem até o cursor. */
 export function TargetingArrow() {
   const st = useStore()
   const [mouse, setMouse] = useState<{ x: number; y: number } | null>(null)
@@ -119,17 +135,9 @@ export function TargetingArrow() {
 
   return (
     <svg className="arrow-svg">
-      <path
-        className={`arrow-line${isSpell ? ' spell' : ''}`}
-        d={`M ${x1} ${y1} Q ${mx} ${my} ${mouse.x} ${mouse.y}`}
-      />
-      <circle
-        cx={mouse.x}
-        cy={mouse.y}
-        r={7}
-        fill={isSpell ? 'var(--entangle)' : 'var(--particle)'}
-        opacity={0.9}
-      />
+      <path className={`arrow-line${isSpell ? ' spell' : ''}`} d={`M ${x1} ${y1} Q ${mx} ${my} ${mouse.x} ${mouse.y}`} />
+      <circle cx={mouse.x} cy={mouse.y} r={8} fill="none" stroke={isSpell ? 'var(--entangle)' : 'var(--ink)'} strokeWidth={3} />
+      <circle cx={mouse.x} cy={mouse.y} r={2.4} fill={isSpell ? 'var(--entangle)' : 'var(--ink)'} />
     </svg>
   )
 }
@@ -137,54 +145,130 @@ export function TargetingArrow() {
 export function GameOverOverlay() {
   const st = useStore()
   const won = st.game.winner === 'player'
-  const burst = useRef(
-    Array.from({ length: 26 }, (_, i) => ({
-      key: i,
-      x: (Math.random() - 0.5) * 560,
-      y: (Math.random() - 0.5) * 420,
-      delay: Math.random() * 0.4,
-    })),
-  )
   return (
-    <motion.div
-      className={`gameover ${won ? 'win' : 'lose'}`}
-      initial={{ opacity: 0 }}
-      animate={{ opacity: 1 }}
-      transition={{ duration: 0.6 }}
-    >
-      {won &&
-        burst.current.map((p) => (
-          <motion.span
-            key={p.key}
-            className="collapse-particle"
-            style={{
-              position: 'fixed',
-              left: '50%',
-              top: '42%',
-              background: p.key % 2 === 0 ? 'var(--particle)' : 'var(--wave)',
-              width: 7,
-              height: 7,
-            }}
-            initial={{ x: 0, y: 0, opacity: 1 }}
-            animate={{ x: p.x, y: p.y, opacity: 0 }}
-            transition={{ duration: 1.4, delay: p.delay, ease: [0.22, 1, 0.36, 1] }}
-          />
-        ))}
-      <motion.h1
-        initial={{ scale: 0.8, opacity: 0 }}
-        animate={{ scale: 1, opacity: 1 }}
-        transition={{ delay: 0.2, type: 'spring', stiffness: 200, damping: 18 }}
+    <motion.div className="gameover" initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 0.5 }}>
+      <motion.div
+        className={`report ${won ? 'win' : 'lose'}`}
+        initial={{ y: 60, rotate: -3, opacity: 0 }}
+        animate={{ y: 0, rotate: -0.8, opacity: 1 }}
+        transition={{ type: 'spring', stiffness: 210, damping: 20 }}
       >
-        {won ? 'Coerência total' : 'Decoerência'}
-      </motion.h1>
-      <p>
-        {won
-          ? 'A função de onda do oponente foi reduzida a ruído. O universo escolheu você.'
-          : 'Sua função de onda se dissolveu no ambiente. O universo insiste em ser clássico.'}
-      </p>
-      <button className="btn-start" onClick={restart}>
-        Jogar de novo
-      </button>
+        <motion.div
+          className="verdict"
+          initial={{ scale: 2.4, opacity: 0, rotate: 24 }}
+          animate={{ scale: 1, opacity: 1, rotate: 12 }}
+          transition={{ delay: 0.45, duration: 0.2, ease: [0.6, 0, 0.8, 0.4] }}
+        >
+          {won ? 'Aprovado' : 'Arquivado'}
+        </motion.div>
+        <div className="report-kicker">instituto meia-vida · relatório de plantão</div>
+        <h1>{won ? 'Coerência total' : 'Decoerência'}</h1>
+        <p>
+          {won
+            ? 'A função de onda do Autômato foi reduzida a ruído de fundo. O Supervisor deixou um bilhete: "aceitável". É o maior elogio registrado desde 1953.'
+            : 'Sua função de onda se dissolveu no ambiente. O Autômato já datilografou o relatório em três vias. Requisite um novo plantão.'}
+        </p>
+        <button className="btn-stamp" onClick={restart}>
+          Novo plantão
+        </button>
+      </motion.div>
     </motion.div>
+  )
+}
+
+/** Memorando didático do Supervisor (um por vez, canto inferior direito). */
+export function MemoToast() {
+  const st = useStore()
+  const memo = st.memoQueue.length > 0 ? MEMOS[st.memoQueue[0]] : null
+  return (
+    <AnimatePresence>
+      {memo && (
+        <motion.div
+          key={memo.id}
+          className="memo"
+          initial={{ y: 90, opacity: 0, rotate: 5 }}
+          animate={{ y: 0, opacity: 1, rotate: 1.2 }}
+          exit={{ y: 60, opacity: 0 }}
+          transition={{ type: 'spring', stiffness: 260, damping: 22 }}
+        >
+          <div className="memo-kicker">memorando do supervisor</div>
+          <div className="memo-title">{memo.title}</div>
+          <div className="memo-text">{memo.text}</div>
+          <div style={{ display: 'flex', gap: '0.4rem' }}>
+            <button className="memo-btn" onClick={dismissMemo}>
+              Entendido
+            </button>
+            <button className="memo-btn" style={{ opacity: 0.65 }} onClick={dismissAllMemos}>
+              Já sei jogar
+            </button>
+          </div>
+        </motion.div>
+      )}
+    </AnimatePresence>
+  )
+}
+
+export function ManualOverlay() {
+  const st = useStore()
+  if (!st.manualOpen) return null
+  return (
+    <div className="manual-overlay" onClick={toggleManual}>
+      <motion.div
+        className="manual"
+        onClick={(e) => e.stopPropagation()}
+        initial={{ y: 40, opacity: 0 }}
+        animate={{ y: 0, opacity: 1 }}
+        transition={{ duration: 0.3, ease: [0.22, 1, 0.36, 1] }}
+      >
+        <h2>Manual do Observador</h2>
+        <div className="manual-sub">instituto meia-vida · circular interna nº 7 · leia antes de tocar em qualquer coisa</div>
+
+        <h3><span className="dot" style={{ background: 'var(--approve)' }} />Objetivo</h3>
+        <p>
+          Zere a Coerência do Autômato (ele começa com 25; você também). Sujeitos em campo atacam uma
+          vez por turno; protocolos são efeitos de uso único. Tudo custa Qubits — você ganha 1 de
+          máximo por turno (até 8) e eles recarregam inteiros a cada plantão.
+        </p>
+
+        <h3><span className="dot" style={{ background: 'linear-gradient(90deg, var(--particle) 50%, var(--wave) 50%)' }} />Superposição</h3>
+        <p>
+          Toda ficha de sujeito tem DOIS estados: a linha A (vermelha) e a linha B (azul), com ataque,
+          vida e habilidades próprios. Enquanto as duas linhas pulsam, o sujeito está em superposição:
+          é os dois ao mesmo tempo e não tem palavra-chave nenhuma.
+        </p>
+
+        <h3><span className="dot" style={{ background: 'var(--particle)' }} />Colapso</h3>
+        <p>
+          Quando um sujeito em superposição ataca, é atacado ou é medido, ele COLAPSA: um carimbo
+          sorteia um dos dois estados (50/50) para sempre. Protocolos como Medição e o poder Observar
+          forçam o colapso na hora que for melhor para você.
+        </p>
+
+        <h3><span className="dot" style={{ background: 'var(--entangle)' }} />Emaranhamento</h3>
+        <p>
+          O Protocolo E-03 amarra um sujeito seu a um inimigo com barbante vermelho: quando um
+          colapsa, o outro colapsa junto (no mesmo estado, A com A, B com B); quando um morre, o outro
+          sofre 2 de dano de eco.
+        </p>
+
+        <h3><span className="dot" style={{ background: 'var(--ink)' }} />Palavras-chave</h3>
+        <p>
+          BARREIRA: precisa ser atacado primeiro. VELOZ: ataca no turno em que entra. FANTASMA:
+          ignora Barreira. Lembre: só valem no estado colapsado que as possui.
+        </p>
+
+        <h3><span className="dot" style={{ background: 'var(--energy)' }} />Arquivo e refil</h3>
+        <p>
+          No início do seu turno você compra até ficar com 5 fichas (sempre ao menos 1). Quando o
+          arquivo esvazia, o descarte inteiro volta embaralhado. Nunca existe turno sem jogada.
+        </p>
+
+        <div className="close-row">
+          <button className="btn-paper" onClick={toggleManual}>
+            Voltar ao plantão
+          </button>
+        </div>
+      </motion.div>
+    </div>
   )
 }

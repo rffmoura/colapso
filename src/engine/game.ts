@@ -10,7 +10,7 @@ import type {
   StepResult,
   TargetRef,
 } from './types'
-import { HERO_POWER_COST, MAX_BOARD, MAX_HAND, MAX_QUBITS, START_COHERENCE } from './types'
+import { HAND_REFILL, HERO_POWER_COST, MAX_BOARD, MAX_HAND, MAX_QUBITS, START_COHERENCE } from './types'
 
 export function other(o: Owner): Owner {
   return o === 'player' ? 'ai' : 'player'
@@ -96,15 +96,16 @@ function drawInto(s: GameState, owner: Owner, n: number, ev: GameEvent[]) {
   const side = s.sides[owner]
   let drawn = 0
   for (let i = 0; i < n; i++) {
-    const defId = side.deck.pop()
-    if (defId === undefined) {
-      side.fatigue += 1
-      ev.push({ t: 'fatigue', owner, amount: side.fatigue })
-      applyHeroDamage(s, owner, side.fatigue, ev)
-      continue
+    if (side.deck.length === 0 && side.discard.length > 0) {
+      side.deck = shuffle(side.discard)
+      side.discard = []
+      ev.push({ t: 'reshuffle', owner })
     }
+    const defId = side.deck.pop()
+    if (defId === undefined) continue // arquivo e descarte vazios: nada a comprar
     if (side.hand.length >= MAX_HAND) {
       ev.push({ t: 'burn', owner, defId })
+      side.discard.push(defId)
       continue
     }
     side.hand.push({ uid: s.nextUid++, defId })
@@ -149,6 +150,7 @@ function killCreature(s: GameState, uid: number, ev: GameEvent[]) {
   const board = s.board[c.owner]
   const idx = board.findIndex((x) => x.uid === uid)
   if (idx >= 0) board.splice(idx, 1)
+  s.sides[c.owner].discard.push(c.defId)
   ev.push({ t: 'death', uid, defId: c.defId, owner: c.owner })
   if (c.entangledWith !== null) {
     const partner = findCreature(s, c.entangledWith)
@@ -177,8 +179,8 @@ export function newGame(): GameState {
     qubits: 0,
     maxQubits: 0,
     deck: shuffle(DECK_LIST),
+    discard: [],
     hand: [],
-    fatigue: 0,
     heroPowerUsed: false,
   })
   const s: GameState = {
@@ -205,7 +207,9 @@ export function startTurn(prev: GameState): StepResult {
   side.heroPowerUsed = false
   for (const c of s.board[s.active]) c.attacksUsed = 0
   ev.push({ t: 'turn', owner: s.active, turn: s.turn })
-  drawInto(s, s.active, 1, ev)
+  // refil: compra até HAND_REFILL cartas (sempre ao menos 1)
+  const need = Math.max(1, HAND_REFILL - side.hand.length)
+  drawInto(s, s.active, need, ev)
   return { state: s, events: ev }
 }
 
@@ -259,6 +263,7 @@ export function paySpell(prev: GameState, owner: Owner, handUid: number): StepRe
   if (def.cost > side.qubits) return { state: prev, events: [] }
   side.qubits -= def.cost
   side.hand.splice(idx, 1)
+  side.discard.push(def.id)
   return { state: s, events: [{ t: 'spell', defId: def.id, owner }] }
 }
 

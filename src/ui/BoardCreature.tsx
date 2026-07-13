@@ -65,24 +65,29 @@ export function BoardCreature({ c }: { c: Creature }) {
 
   return (
     <motion.div
-      layout
+      layout="position"
       layoutId={`unit-${c.uid}`}
-      initial={{ scale: 0.5, opacity: 0, y: 24 }}
-      animate={{ scale: 1, opacity: 1, y: 0 }}
-      exit={{ scale: 0.3, opacity: 0, filter: 'blur(8px)', transition: { duration: 0.45 } }}
-      transition={{ type: 'spring', stiffness: 320, damping: 26 }}
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      exit={{ opacity: 0, transition: { duration: 0.4 } }}
       style={{ position: 'relative', zIndex: anim ? 9 : undefined }}
     >
       <motion.div
+        initial={{ scale: 0.55, y: 22 }}
         animate={
           anim
             ? {
+                scale: 1,
                 x: [0, -anim.dx * 0.08, anim.dx * 0.82, 0],
                 y: [0, -anim.dy * 0.08, anim.dy * 0.82, 0],
               }
-            : { x: 0, y: 0 }
+            : { x: 0, y: 0, scale: 1 }
         }
-        transition={anim ? { duration: 0.64, times: [0, 0.28, 0.5, 1], ease: 'easeInOut' } : { duration: 0.15 }}
+        transition={
+          anim
+            ? { duration: 0.64, times: [0, 0.28, 0.5, 1], ease: 'easeInOut' }
+            : { type: 'spring', stiffness: 320, damping: 26 }
+        }
       >
         <motion.div animate={controls}>
           <div

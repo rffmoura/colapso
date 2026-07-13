@@ -1,6 +1,7 @@
-# COLAPSO — um duelo quântico
+# COLAPSO — Instituto Meia-Vida
 
-Jogo de cartas web single-player (você contra a IA) onde **nada está decidido até alguém olhar**.
+Jogo de cartas web single-player (você contra o Autômato) ambientado num laboratório dos anos
+1950 que cataloga entidades quânticas. **Nada está decidido até alguém olhar.**
 
 ## Como rodar
 
@@ -13,23 +14,38 @@ Abra o endereço que o Vite indicar (por padrão `http://localhost:5173`).
 
 ## Regras
 
-- Cada jogador começa com **25 de Coerência** (vida) e um deck de 20 cartas. Reduza a Coerência do oponente a zero.
-- **Qubits** são a energia: você ganha 1 de máximo por turno (até 8) e eles recarregam a cada turno.
-- **Superposição**: toda criatura entra em jogo com *dois estados possíveis* (ex.: Gato de Schrödinger é `Vivo 4/2 Veloz` ⟷ `Espectro 1/6 Barreira`). Enquanto superposta, ela não tem palavras-chave e seus atributos são indefinidos.
-- **Colapso**: ao atacar, ser atacada ou ser alvo de medição, a criatura colapsa num único estado (50/50) — para sempre.
-- **Emaranhamento**: vincula uma criatura sua a uma inimiga. Quando uma colapsa, a outra colapsa junto (mesmo estado); quando uma morre, a outra sofre 2 de dano de eco.
-- **Poder de herói — Observar (2 qubits)**: colapsa qualquer criatura, uma vez por turno.
-- Palavras-chave: **Barreira** (inimigos devem atacá-la primeiro), **Veloz** (ataca no turno em que entra), **Fantasma** (ignora Barreira).
+- Cada lado começa com **25 de Coerência**. Zere a do oponente.
+- **Qubits** são a energia: +1 de máximo por turno (até 8), recarregam inteiros a cada turno.
+- **Refil de mão**: no início do seu turno você compra até ficar com 5 fichas (sempre ao menos 1).
+  Quando o arquivo (deck) esvazia, o **descarte volta embaralhado** — nunca há turno morto.
+- **Superposição**: todo sujeito tem dois estados (linha A vermelha e linha B azul), com ataque,
+  vida e palavras-chave próprios. Em superposição ele não tem palavra-chave nenhuma.
+- **Colapso**: ao atacar, ser atacado ou medido, o sujeito colapsa num único estado (50/50),
+  carimbado para sempre.
+- **Emaranhamento**: barbante vermelho entre um sujeito seu e um inimigo — colapsam juntos
+  (mesmo estado) e, quando um morre, o outro sofre 2 de dano de eco.
+- **Poder Observar (2 qubits, 1x/turno)**: colapsa qualquer sujeito.
+- Palavras-chave: **Barreira** (precisa ser atacado primeiro), **Veloz** (ataca no turno em que
+  entra), **Fantasma** (ignora Barreira).
 
-## Controles
+## Didática embutida
 
-- Clique numa carta da mão para jogá-la (feitiços com alvo entram em modo de mira).
-- Clique numa criatura sua e depois no alvo para atacar. `Esc` ou clique no fundo cancela.
+- **Memorandos do Supervisor**: a primeira vez que cada mecânica acontece, um memo explica na hora
+  (persistido em localStorage; "Já sei jogar" desativa todos).
+- **Tooltips**: palavras-chave, custo, qubits, coerência e arquivo explicam-se ao passar o mouse.
+- **Manual do Observador**: botão "?" (em jogo) ou na tela de título.
+
+## Elenco
+
+O Gato (Sujeito nº 13), Fóton o Estafeta, Neutrina a Intangível, Sentinela Q-88, Elétron o
+Inquieto, O Auditor, Madame Onda, Quasar o Farol e A Fome — cada um com ilustração vetorial
+própria e animação idle. Protocolos são os feitiços do Instituto.
 
 ## Stack
 
-Vite + React 19 + TypeScript + Motion (Framer Motion). Sem backend; sons sintetizados via WebAudio, arte das cartas 100% procedural (SVG).
+Vite + React 19 + TypeScript + Motion. Sem backend e sem assets externos: arte 100% SVG artesanal,
+sons sintetizados via WebAudio, texturas de papel geradas em CSS/SVG.
 
-- Motor de regras puro em `src/engine/` (tipos, cartas, lógica, IA)
-- Orquestração de animações e turnos em `src/state/store.ts`
-- Componentes visuais em `src/ui/`
+- Motor de regras puro em `src/engine/` (tipos, fichas, lógica, IA)
+- Orquestração de turnos/animações em `src/state/store.ts`
+- Personagens em `src/ui/characters.tsx`; memos/manual em `src/ui/didactics.ts`

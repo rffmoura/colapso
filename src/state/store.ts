@@ -2,6 +2,7 @@ import { useSyncExternalStore } from 'react'
 import { sfx, setMuted } from '../audio/sfx'
 import { decideAi } from '../engine/ai'
 import { getDef } from '../engine/cards'
+import { loadSeenMemos, MEMOS, persistSeenMemos } from '../ui/didactics'
 import {
   canAttack,
   canPlay,
@@ -55,6 +56,11 @@ export interface StoreState {
   attackAnim: { attacker: number; dx: number; dy: number } | null
   aiThinking: boolean
   muted: boolean
+  /** fila de memorandos didáticos do Supervisor (ids de MEMOS) */
+  memoQueue: string[]
+  manualOpen: boolean
+  /** incrementa a cada impacto para sacudir o tabuleiro */
+  shakeTick: number
 }
 
 /** Registro de elementos DOM por alvo, para linhas de emaranhamento e investidas */
@@ -81,6 +87,36 @@ let state: StoreState = {
   attackAnim: null,
   aiThinking: false,
   muted: false,
+  memoQueue: [],
+  manualOpen: false,
+  shakeTick: 0,
+}
+
+const seenMemos = loadSeenMemos()
+
+function queueMemo(id: string) {
+  if (!MEMOS[id] || seenMemos.has(id) || state.memoQueue.includes(id)) return
+  seenMemos.add(id)
+  persistSeenMemos(seenMemos)
+  set({ memoQueue: [...state.memoQueue, id] })
+}
+
+export function dismissMemo() {
+  set({ memoQueue: state.memoQueue.slice(1) })
+}
+
+export function dismissAllMemos() {
+  for (const id of Object.keys(MEMOS)) seenMemos.add(id)
+  persistSeenMemos(seenMemos)
+  set({ memoQueue: [] })
+}
+
+export function toggleManual() {
+  set({ manualOpen: !state.manualOpen })
+}
+
+function shakeBoard() {
+  set({ shakeTick: state.shakeTick + 1 })
 }
 
 const listeners = new Set<() => void>()
@@ -119,9 +155,15 @@ function apply(step: StepResult): GameEvent[] {
       case 'damage':
         pushFx(keyOf(e.target), `-${e.amount}`, 'dano')
         break
-      case 'collapse':
+      case 'collapse': {
         sfx.collapse()
+        queueMemo('colapso')
+        const collapsedDefId = findCreature(step.state, e.uid)?.defId
+        if (collapsedDefId && getDef(collapsedDefId).faces?.[e.face]?.keywords.includes('barreira')) {
+          queueMemo('barreira')
+        }
         break
+      }
       case 'death':
         sfx.death()
         break
@@ -129,16 +171,17 @@ function apply(step: StepResult): GameEvent[] {
         sfx.draw()
         break
       case 'burn':
-        pushFx(`hero-${e.owner}`, 'carta queimada', 'info')
+        pushFx(`hero-${e.owner}`, 'ficha extraviada', 'info')
         break
-      case 'fatigue':
-        pushFx(`hero-${e.owner}`, `fadiga ${e.amount}`, 'info')
+      case 'reshuffle':
+        pushFx(`hero-${e.owner}`, 'arquivo reembaralhado', 'info')
         break
       case 'echo':
         pushFx(`c-${e.to}`, 'eco −2', 'eco')
         break
       case 'entangle':
         sfx.entangle()
+        queueMemo('emaranhamento')
         break
       case 'spell':
         sfx.spell()
@@ -195,6 +238,7 @@ async function attackSeq(attackerUid: number, target: TargetRef) {
   }
   await wait(LUNGE_MS)
   sfx.hit()
+  shakeBoard()
   apply(resolveCombat(state.game, attackerUid, target))
   await wait(IMPACT_MS)
   set({ attackAnim: null })
@@ -232,6 +276,7 @@ async function spellSeq(owner: Owner, handUid: number, spell: SpellKind, targets
         const c = findCreature(state.game, t.uid)
         if (c && c.collapsed === null) await collapseWithDrama(t.uid)
       }
+      shakeBoard()
       apply(damageTarget(state.game, t, 3))
       sfx.hit()
       await wait(500)
@@ -250,6 +295,7 @@ async function spellSeq(owner: Owner, handUid: number, spell: SpellKind, targets
         }
       }
       if (anyCollapse) await wait(COLLAPSE_MS - 280)
+      shakeBoard()
       for (const uid of uids) {
         if (findCreature(state.game, uid)) {
           apply(damageTarget(state.game, { kind: 'creature', uid }, 2))
@@ -271,7 +317,8 @@ async function spellSeq(owner: Owner, handUid: number, spell: SpellKind, targets
 
 export function startGame() {
   sfx.select()
-  set({ game: newGame(), phase: 'game', selection: null, fx: [], busy: true })
+  set({ game: newGame(), phase: 'game', selection: null, fx: [], busy: true, memoQueue: [] })
+  queueMemo('inicio')
   void runStartTurn()
 }
 
@@ -296,6 +343,8 @@ async function runStartTurn() {
   if (state.game.active === 'ai') {
     await aiTurn()
   } else {
+    if (state.game.sides.player.maxQubits >= 2) queueMemo('observar')
+    if (state.game.turn >= 3) queueMemo('refil')
     set({ busy: false })
   }
 }
@@ -323,6 +372,7 @@ export function clickHandCard(handUid: number) {
     void (async () => {
       sfx.play()
       const events = apply(playCreature(state.game, 'player', handUid))
+      queueMemo('superposicao')
       if (events.some((e) => e.t === 'collapse')) await wait(COLLAPSE_MS)
       set({ busy: false })
     })()

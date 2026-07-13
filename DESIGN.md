@@ -1,46 +1,62 @@
-# DESIGN.md — Colapso
+# DESIGN.md — COLAPSO v2 · "Instituto Meia-Vida"
 
-## Estratégia de cor: Full palette (dualidade mecânica)
+## Direção
 
-A paleta É a mecânica. Cada papel de cor tem significado de regra:
+Era atômica, anos 1950. O jogo é a mesa de trabalho de um Observador do Instituto Meia-Vida:
+papel creme, tinta quente, carimbos, fichas de catálogo de sujeitos experimentais. Zero cosmos,
+zero neon. Impressão serigráfica: cores chapadas, registro levemente desalinhado, grain de papel.
+
+## Estratégia de cor: Full palette (tinta sobre papel)
 
 | Papel | OKLCH | Uso |
 |---|---|---|
-| Vazio (fundo) | `oklch(0.14 0.02 300)` | fundo do cosmos; nunca #000 |
-| Vazio elevado | `oklch(0.19 0.025 300)` | painéis, verso de carta |
-| Partícula (estado A) | `oklch(0.78 0.16 70)` âmbar | face A das cartas, dano físico |
-| Onda (estado B) | `oklch(0.80 0.13 220)` azul-gelo | face B das cartas |
-| Emaranhamento | `oklch(0.70 0.20 320)` violeta-magenta | linhas de vínculo, feitiços de vínculo |
-| Coerência (vida) | `oklch(0.75 0.15 150)` verde-água | HP, cura |
-| Colapso (flash) | `oklch(0.97 0.05 90)` branco-quente | flashes de medição, partículas |
-| Texto | `oklch(0.93 0.01 300)` | texto primário |
-| Texto secundário | `oklch(0.62 0.02 300)` | rótulos, custos apagados |
+| Papel | `oklch(0.94 0.02 90)` | fundo geral (bancada) |
+| Papel-ficha | `oklch(0.97 0.015 95)` | corpo das cartas |
+| Papel-sombra | `oklch(0.88 0.025 88)` | zonas, painéis rebaixados |
+| Tinta | `oklch(0.25 0.02 60)` | texto, contornos, carimbo de turno |
+| Tinta fraca | `oklch(0.48 0.02 70)` | texto secundário, pautas |
+| Partícula (estado A) | `oklch(0.58 0.19 33)` vermelho-tomate | face A, dano, carimbos de alerta |
+| Onda (estado B) | `oklch(0.55 0.1 205)` teal | face B, água/calma |
+| Energia | `oklch(0.78 0.14 85)` mostarda | qubits, custo, destaques |
+| Emaranhamento | `oklch(0.5 0.16 310)` roxo atômico | barbante de evidências, protocolos |
+| Aprovado | `oklch(0.55 0.12 150)` verde-selo | coerência, cura, vitória |
 
-Superposição = gradiente/cintilação âmbar↔azul-gelo. Nunca usar as duas cores juntas fora desse significado.
+Dualidade mecânica preservada: **Partícula = vermelho-tomate, Onda = teal**; superposição = os
+dois carimbos convivendo na ficha. Roxo é exclusivo do emaranhamento/protocolos.
 
 ## Tema
 
-Escuro, justificado pela cena: jogador casual à noite, quarto escuro, tela é a única fonte de luz; efeitos de partícula e glow precisam de fundo escuro para ter luminância percebida. Não é "dark porque é sci-fi".
+Claro (papel iluminado de escrivaninha). Cena: o jogador é um funcionário noturno sob a luz de
+uma luminária de mesa; a mesa é quente, o resto da sala escurece nas bordas (vinheta suave).
 
 ## Tipografia
 
-- **Display: Unbounded** (títulos, nome do jogo, banner de turno, nomes de carta) — cerimonial e cósmica sem figurino sci-fi.
-- **Corpo/UI: Sora** (texto de regra, rótulos, números de atributo) — precisa, geométrica, ótima em corpos pequenos.
-- Escala com ratio ≥1.25; números de atributo em peso 800.
+- **Display: Archivo Black** — pôster atômico, títulos, números de atributo, carimbos.
+- **Máquina de escrever: Special Elite** — rótulos de ficha, texto de regra, memos do Supervisor.
+- **Corpo/UI: Archivo** (400/600/700) — controles e textos utilitários.
+- Escala ≥1.25; números de stats grandes e chapados.
 
-## Layout
+## Anatomia da carta (ficha de catálogo)
 
-Tabuleiro em três faixas horizontais: mão/painel da IA (topo, compacta), campo de batalha (centro, dominante), mão do jogador (baixo, em leque). Painéis de herói nos cantos esquerdos das faixas. Sem cards-de-UI aninhados; o campo é espaço aberto sobre o cosmos.
+1. Cabeçalho: faixa de tinta com **nome completo legível** (nada sobrepõe o nome).
+2. Selo de custo: círculo mostarda no canto superior direito, DENTRO da carta.
+3. Janela de arte: personagem vetorial sobre fundo de cor da carta, moldura de tinta.
+4. Bloco de estados: duas linhas legíveis `A · Vivo · 4/2 · Veloz` / `B · Espectro · 1/6 · Barreira`
+   (a linha ativa acende após o colapso; antes, as duas pulsam alternando).
+5. Rodapé: número de série da ficha + tipo (SUJEITO / PROTOCOLO).
 
-## Motion (assinaturas)
+## Motion (assinaturas v2)
 
-- **Superposição**: a carta cintila entre as duas faces (crossfade lento + leve deriva cromática âmbar/azul). Nunca parada.
-- **Colapso**: oscilação acelera → flash branco-quente → explosão de partículas → snap na face final com scale spring.
-- **Ataque**: anticipation (recuo) → investida → shake no alvo + burst radial + número de dano flutuante.
-- **Emaranhamento**: linha bezier SVG violeta pulsante entre as cartas.
-- **Jogar carta**: voo da mão ao slot com spring; layout animation nos slots.
-- Easings: ease-out-quart/expo; springs para snaps. Sem bounce/elastic decorativo. Nunca animar propriedades de layout CSS (usar transform).
+- **Colapso** = carimbo `OBSERVADO` que desce com slam, tremor de papel e respingos de tinta;
+  a linha do estado sorteado acende.
+- **Emaranhamento** = barbante vermelho de mural de evidências entre as fichas, com leve balanço.
+- **Ataque** = a ficha desliza com tilt e slam; impacto com burst de tinta e shake curto do tabuleiro.
+- **Turno** = tarja de telegrama atravessa a tela (`SEU PLANTÃO · TURNO 3`).
+- **Fim de jogo** = RELATÓRIO FINAL com carimbo `APROVADO` (vitória) ou `ARQUIVADO` (derrota).
+- **Idle dos personagens**: piscar de olhos, cauda do Gato, antena da Sentinela (CSS keyframes).
+- Easings ease-out-quart/expo; springs nos slams. Transform-only.
 
-## Bans do projeto
+## Bans do projeto (v2)
 
-Orbitron/Michroma e afins; neon ciano sobre #000; glassmorphism decorativo; gradiente em texto; mesa de madeira/feltro skeuomórfico; modais para escolhas de jogo (escolhas acontecem inline no tabuleiro).
+Cosmos/neon/starfield; glassmorphism; gradiente em texto; Orbitron e afins; sombras difusas
+"suaves de SaaS" (sombras aqui são duras, deslocadas, de impressão); emoji na UI.

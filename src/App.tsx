@@ -1,8 +1,7 @@
 import { useEffect } from 'react'
-import { cancelSelection, toggleMute, useStore } from './state/store'
-import { Background } from './ui/Background'
+import { cancelSelection, toggleManual, toggleMute, useStore } from './state/store'
 import { GameBoard } from './ui/GameBoard'
-import { GameOverOverlay } from './ui/Overlays'
+import { GameOverOverlay, ManualOverlay, MemoToast } from './ui/Overlays'
 import { TitleScreen } from './ui/TitleScreen'
 
 export default function App() {
@@ -17,14 +16,24 @@ export default function App() {
   }, [])
 
   return (
-    <>
-      <div className="bg-nebula" />
-      <Background />
-      <button className="btn-mute" onClick={toggleMute} title={st.muted ? 'Ativar som' : 'Silenciar'}>
-        {st.muted ? '🔇' : '🔊'}
-      </button>
+    <div className="paper-grain paper-vignette">
+      <div className="top-controls">
+        <button className="btn-icon" onClick={toggleManual} data-tip="Manual do Observador" aria-label="Manual">
+          ?
+        </button>
+        <button
+          className={`btn-icon${st.muted ? ' off' : ''}`}
+          onClick={toggleMute}
+          data-tip={st.muted ? 'Reativar som' : 'Silenciar'}
+          aria-label="Som"
+        >
+          S
+        </button>
+      </div>
       {st.phase === 'title' ? <TitleScreen /> : <GameBoard />}
       {st.phase === 'over' && <GameOverOverlay />}
-    </>
+      <MemoToast />
+      <ManualOverlay />
+    </div>
   )
 }
