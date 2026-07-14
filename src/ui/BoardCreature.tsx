@@ -78,6 +78,7 @@ export function BoardCreature({ c }: { c: Creature }) {
 
   return (
     <motion.div
+      className="creature-shell"
       // entrada via CSS (.creature-enter); Motion cuida apenas da saída e da investida
       exit={{ opacity: 0, scale: 0.6, transition: { duration: 0.35 } }}
       style={{ position: 'relative', zIndex: anim ? 9 : undefined }}

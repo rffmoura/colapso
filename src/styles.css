@@ -601,8 +601,7 @@ button { font-family: inherit; color: inherit; background: none; border: none; c
 
 .size-board .kw {
   max-width: 4.4rem;
-  overflow: hidden;
-  text-overflow: ellipsis;
+  overflow: visible;
   padding-inline: 0.2rem;
   font-size: 0.48rem;
   letter-spacing: 0.025em;
@@ -818,6 +817,8 @@ button { font-family: inherit; color: inherit; background: none; border: none; c
 /* ---------- criatura no campo ---------- */
 
 .creature { position: relative; }
+
+.creature-shell:hover { z-index: 12 !important; }
 
 /* ataque negado: a Barreira treme e acende para explicar o bloqueio */
 .creature.barrier-deny .card {
@@ -1588,6 +1589,13 @@ button.secret-card { cursor: pointer; }
 .secret-card.compact .secret-seal { display: none; }
 .secret-card.compact .secret-code { font-size: 0.38rem; padding: 0.1rem 0.2rem 0.07rem; }
 .secret-card.compact .secret-name { max-width: 100%; font-size: 0.52rem; line-height: 1.1; }
+
+.secret-card.compact.hidden .secret-name {
+  font-size: 0.46rem;
+  line-height: 1.08;
+  letter-spacing: 0.025em;
+  overflow-wrap: normal;
+}
 
 .secret-card.used { background: var(--paper-dim); }
 

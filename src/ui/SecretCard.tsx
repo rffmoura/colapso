@@ -28,7 +28,7 @@ export function SecretCard({
       <span className="secret-notch" aria-hidden="true" />
       <div className="secret-code">{hidden ? 'CT-??' : def?.code}</div>
       <div className="secret-seal" aria-hidden="true">C</div>
-      <div className="secret-name">{hidden ? 'Contramedida confidencial' : def?.name}</div>
+      <div className="secret-name">{hidden ? (compact ? 'Protocolo sob sigilo' : 'Contramedida confidencial') : def?.name}</div>
       {!compact && <div className="secret-trigger">{hidden ? 'gatilho sob sigilo' : def?.trigger}</div>}
       {!compact && <p>{hidden ? 'O Autômato lacrou este protocolo. Só será identificado quando disparar.' : def?.text}</p>}
       {reserve > 0 && <span className="secret-reserve">+{reserve} em reserva</span>}
