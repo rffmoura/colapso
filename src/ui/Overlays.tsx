@@ -29,7 +29,7 @@ export function TurnBanner() {
             <div className={`telegram-text ${mine ? 'mine' : 'theirs'}`}>
               {mine ? 'Seu plantão' : 'Vez do Autômato'}
             </div>
-            <div className="telegram-sub">— turno {b.turn} · instituto meia-vida —</div>
+            <div className="telegram-sub">turno {b.turn} · instituto meia-vida</div>
           </motion.div>
         )}
       </AnimatePresence>
@@ -146,7 +146,15 @@ export function GameOverOverlay() {
   const st = useStore()
   const won = st.game.winner === 'player'
   return (
-    <motion.div className="gameover" initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 0.5 }}>
+    <motion.div
+      className="gameover"
+      role="dialog"
+      aria-modal="true"
+      aria-label={won ? 'Relatório final: aprovado' : 'Relatório final: arquivado'}
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      transition={{ duration: 0.5 }}
+    >
       <motion.div
         className={`report ${won ? 'win' : 'lose'}`}
         initial={{ y: 60, rotate: -3, opacity: 0 }}
@@ -176,7 +184,7 @@ export function GameOverOverlay() {
   )
 }
 
-/** Memorando didático do Supervisor (um por vez, canto inferior direito). */
+/** Memorando didático do Supervisor (um por vez, sem cobrir as ações da mesa). */
 export function MemoToast() {
   const st = useStore()
   const memo = st.memoQueue.length > 0 ? MEMOS[st.memoQueue[0]] : null
@@ -186,6 +194,8 @@ export function MemoToast() {
         <motion.div
           key={memo.id}
           className="memo"
+          role="status"
+          aria-live="polite"
           initial={{ y: 90, opacity: 0, rotate: 5 }}
           animate={{ y: 0, opacity: 1, rotate: 1.2 }}
           exit={{ y: 60, opacity: 0 }}
@@ -215,25 +225,28 @@ export function ManualOverlay() {
     <div className="manual-overlay" onClick={toggleManual}>
       <motion.div
         className="manual"
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="manual-title"
         onClick={(e) => e.stopPropagation()}
         initial={{ y: 40, opacity: 0 }}
         animate={{ y: 0, opacity: 1 }}
         transition={{ duration: 0.3, ease: [0.22, 1, 0.36, 1] }}
       >
-        <h2>Manual do Observador</h2>
+        <h2 id="manual-title">Manual do Observador</h2>
         <div className="manual-sub">instituto meia-vida · circular interna nº 7 · leia antes de tocar em qualquer coisa</div>
 
         <h3><span className="dot" style={{ background: 'var(--approve)' }} />Objetivo</h3>
         <p>
           Zere a Coerência do Autômato (ele começa com 25; você também). Sujeitos em campo atacam uma
-          vez por turno; protocolos são efeitos de uso único. Tudo custa Qubits — você ganha 1 de
+          vez por turno; protocolos são efeitos de uso único. Tudo custa Qubits; você ganha 1 de
           máximo por turno (até 8) e eles recarregam inteiros a cada plantão.
         </p>
 
         <h3><span className="dot" style={{ background: 'var(--ink)' }} />Combate</h3>
         <p>
           Cada estado tem ATAQUE (vermelho) e VIDA (azul). Combate entre sujeitos é uma troca
-          simultânea: cada um causa seu ataque na vida do outro, e o dano acumula entre turnos —
+          simultânea: cada um causa seu ataque na vida do outro, e o dano acumula entre turnos;
           morre quem chegar a zero (às vezes, os dois). Atacar o Observador inimigo não gera revide.
           Sujeito inimigo vivo ataca todo turno: às vezes vale mais removê-lo do que ir na cara.
         </p>

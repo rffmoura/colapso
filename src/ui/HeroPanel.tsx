@@ -64,7 +64,16 @@ export function HeroPanel({ owner }: { owner: Owner }) {
     <div
       ref={registerRef}
       className={`hero-panel ${isPlayer ? 'mine' : 'theirs'}${isValidTarget ? ' valid-target' : ''}`}
+      role={isValidTarget ? 'button' : undefined}
+      aria-label={`${isPlayer ? 'Você, Observador' : 'O Autômato'}, ${side.coherence} de coerência`}
+      tabIndex={isValidTarget ? 0 : -1}
       onClick={(e) => {
+        e.stopPropagation()
+        clickHero(owner)
+      }}
+      onKeyDown={(e) => {
+        if (!isValidTarget || (e.key !== 'Enter' && e.key !== ' ')) return
+        e.preventDefault()
         e.stopPropagation()
         clickHero(owner)
       }}

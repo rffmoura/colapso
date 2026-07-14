@@ -15,12 +15,12 @@ export const MEMOS: Record<string, Memo> = {
   superposicao: {
     id: 'superposicao',
     title: 'Superposição',
-    text: 'Este sujeito está nos DOIS estados ao mesmo tempo — as linhas A e B da ficha. Ele só se decide quando alguém observa: ao atacar, ser atacado ou ser medido.',
+    text: 'Este sujeito está nos DOIS estados ao mesmo tempo: as linhas A e B da ficha. Ele só se decide quando alguém observa, ao atacar, ser atacado ou ser medido.',
   },
   colapso: {
     id: 'colapso',
     title: 'Colapso',
-    text: 'Observado! O carimbo sorteou um estado e agora ele é definitivo. Colapsar os seus na hora certa — e os do inimigo na errada — é o coração do jogo.',
+    text: 'Observado! O carimbo sorteou um estado e agora ele é definitivo. Colapsar os seus na hora certa, e os do inimigo na errada, é o coração do jogo.',
   },
   observar: {
     id: 'observar',
@@ -30,7 +30,7 @@ export const MEMOS: Record<string, Memo> = {
   barreira: {
     id: 'barreira',
     title: 'Barreira',
-    text: 'Sujeitos com BARREIRA precisam ser atacados primeiro. Atenção: a palavra-chave só vale depois do colapso — em superposição, ninguém protege ninguém.',
+    text: 'Sujeitos com BARREIRA precisam ser atacados primeiro. Atenção: a palavra-chave só vale depois do colapso; em superposição, ninguém protege ninguém.',
   },
   emaranhamento: {
     id: 'emaranhamento',
@@ -40,7 +40,7 @@ export const MEMOS: Record<string, Memo> = {
   refil: {
     id: 'refil',
     title: 'Refil do arquivo',
-    text: 'Todo turno você compra até ficar com 5 fichas. Quando o arquivo esvazia, o descarte volta embaralhado — nunca existe turno morto. Gaste sem medo.',
+    text: 'Todo turno você compra até ficar com 5 fichas. Quando o arquivo esvazia, o descarte volta embaralhado; nunca existe turno morto. Gaste sem medo.',
   },
   troca: {
     id: 'troca',
@@ -50,7 +50,7 @@ export const MEMOS: Record<string, Memo> = {
   corrida: {
     id: 'corrida',
     title: 'Correr ou trocar?',
-    text: 'Ir na cara vale quando sua corrida é mais rápida. Mas um sujeito inimigo vivo bate TODO turno — matá-lo agora às vezes economiza mais vida do que o dano que você causaria. Quem ignora o campo entrega a escolha das trocas ao inimigo.',
+    text: 'Ir na cara vale quando sua corrida é mais rápida. Mas um sujeito inimigo vivo bate TODO turno; matá-lo agora às vezes economiza mais vida do que o dano que você causaria. Quem ignora o campo entrega a escolha das trocas ao inimigo.',
   },
 }
 

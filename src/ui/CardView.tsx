@@ -4,10 +4,10 @@ import { getDef } from '../engine/cards'
 import type { Face, Keyword } from '../engine/types'
 import { CharacterArt } from './characters'
 
-export const KW_TIP: Record<Keyword, string> = {
+const KW_TIP: Record<Keyword, string> = {
   barreira: 'Barreira: os inimigos são obrigados a atacar este sujeito antes de qualquer outro alvo.',
   veloz: 'Veloz: pode atacar no mesmo turno em que entra em campo.',
-  fantasma: 'Fantasma: ignora Barreira — pode atacar qualquer alvo, inclusive o Observador inimigo.',
+  fantasma: 'Fantasma: ignora Barreira; pode atacar qualquer alvo, inclusive o Observador inimigo.',
 }
 
 interface CardViewProps {
@@ -67,8 +67,8 @@ export function CardView({ defId, collapsed = null, hp, size, tempKeywords = [],
 
       {isCreature && (
         <div className="state-rows">
-          <StateRow idx={0} face={def.faces![0]} collapsed={showSuperposed ? null : collapsed} compact={size === 'board'} />
-          <StateRow idx={1} face={def.faces![1]} collapsed={showSuperposed ? null : collapsed} compact={size === 'board'} />
+          <StateRow idx={0} face={def.faces![0]} collapsed={showSuperposed ? null : collapsed} />
+          <StateRow idx={1} face={def.faces![1]} collapsed={showSuperposed ? null : collapsed} />
           {tempKeywords.length > 0 && (
             <div style={{ display: 'flex', gap: '0.25rem', justifyContent: 'center' }}>
               {tempKeywords.map((k) => (
@@ -97,7 +97,8 @@ export function CardView({ defId, collapsed = null, hp, size, tempKeywords = [],
 
       {showSuperposed && (
         <div className="super-seal" data-tip="Em superposição: os dois estados coexistem até alguém observar.">
-          ?
+          <span className="super-a">A</span>
+          <span className="super-b">B</span>
         </div>
       )}
 
@@ -110,12 +111,10 @@ function StateRow({
   idx,
   face,
   collapsed,
-  compact = false,
 }: {
   idx: 0 | 1
   face: Face
   collapsed: 0 | 1 | null
-  compact?: boolean
 }) {
   const active = collapsed === idx
   const dead = collapsed !== null && collapsed !== idx
@@ -124,9 +123,8 @@ function StateRow({
       <span className="state-tag">{idx === 0 ? 'A' : 'B'}</span>
       <span className="state-name">{face.label}</span>
       {face.keywords.map((k) => (
-        // na mesa a ficha é estreita: selo compacto de uma letra, tooltip completo
-        <span key={k} className={`kw${compact ? ' kw-compact' : ''}`} data-tip={KW_TIP[k]}>
-          {compact ? k[0] : k}
+        <span key={k} className="kw" data-tip={KW_TIP[k]}>
+          {k}
         </span>
       ))}
       <span className="state-stats">

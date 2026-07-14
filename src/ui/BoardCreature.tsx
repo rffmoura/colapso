@@ -87,7 +87,15 @@ export function BoardCreature({ c }: { c: Creature }) {
             className={classes}
             role="button"
             aria-label={getDef(c.defId).name}
+            aria-pressed={isSelected}
+            tabIndex={c.owner === 'player' || isValidTarget ? 0 : -1}
             onClick={(e) => {
+              e.stopPropagation()
+              clickCreature(c.uid)
+            }}
+            onKeyDown={(e) => {
+              if (e.key !== 'Enter' && e.key !== ' ') return
+              e.preventDefault()
               e.stopPropagation()
               clickCreature(c.uid)
             }}

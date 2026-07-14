@@ -1,4 +1,6 @@
 import { motion } from 'motion/react'
+import type { CSSProperties } from 'react'
+import { getDef } from '../engine/cards'
 import { startGame, toggleManual } from '../state/store'
 import { CharacterArt } from './characters'
 
@@ -8,69 +10,55 @@ export function TitleScreen() {
   return (
     <div className="title-screen">
       <motion.div
-        className="title-kicker"
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        transition={{ duration: 0.6 }}
+        className="title-copy"
+        initial={{ opacity: 0, x: -24 }}
+        animate={{ opacity: 1, x: 0 }}
+        transition={{ duration: 0.6, ease: [0.22, 1, 0.36, 1] }}
       >
-        instituto meia-vida · divisão de observação · turno da noite
-      </motion.div>
+        <div className="title-kicker">instituto meia-vida · divisão de observação · turno da noite</div>
 
-      <motion.h1
-        className="title-logo"
-        initial={{ opacity: 0, y: 26, rotate: -1 }}
-        animate={{ opacity: 1, y: 0, rotate: -1 }}
-        transition={{ duration: 0.55, ease: [0.22, 1, 0.36, 1] }}
-      >
-        COLA<span className="half-a">P</span><span className="half-b">S</span>O
-      </motion.h1>
+        <h1 className="title-logo">
+          COLA<span className="half-a">P</span><span className="half-b">S</span>O
+        </h1>
 
-      <motion.p
-        className="title-sub"
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        transition={{ delay: 0.25, duration: 0.6 }}
-      >
-        Um duelo de fichas onde nada está decidido até alguém olhar.
-      </motion.p>
+        <p className="title-sub">Um duelo de fichas onde nada está decidido até alguém olhar.</p>
 
-      <motion.p
-        className="title-lore"
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        transition={{ delay: 0.45, duration: 0.6 }}
-      >
-        O Instituto estuda o que o universo faz quando ninguém está olhando. Toda noite, um Observador
-        humano e o Autômato da casa disputam a custódia dos sujeitos do arquivo — criaturas que são
-        duas coisas ao mesmo tempo até serem observadas. Você é o Observador desta noite.
-        Observar é interferir; interferir é vencer.
-      </motion.p>
+        <p className="title-lore">
+          O Instituto estuda o que o universo faz quando ninguém está olhando. Toda noite, um Observador
+          humano e o Autômato disputam a custódia de sujeitos que existem em dois estados ao mesmo tempo.
+          Você é o Observador desta noite. Observar é interferir; interferir é vencer.
+        </p>
 
-      <motion.div
-        className="title-cast"
-        initial={{ opacity: 0, y: 16 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: 0.6, duration: 0.5 }}
-      >
-        {CAST.map((id) => (
-          <div key={id} className="cast-slot">
-            <CharacterArt defId={id} />
-          </div>
-        ))}
+        <div className="title-actions">
+          <button className="btn-stamp" onClick={startGame}>
+            Assumir o plantão
+          </button>
+          <button className="btn-paper" onClick={toggleManual}>
+            Manual do Observador
+          </button>
+        </div>
       </motion.div>
 
       <motion.div
-        className="title-actions"
-        initial={{ opacity: 0, y: 16 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: 0.8, duration: 0.5 }}
+        className="title-dossier"
+        initial={{ opacity: 0, y: 26, rotate: 1.5 }}
+        animate={{ opacity: 1, y: 0, rotate: 0.4 }}
+        transition={{ delay: 0.16, duration: 0.65, ease: [0.22, 1, 0.36, 1] }}
+        aria-label="Sujeitos em custódia do Instituto"
       >
-        <button className="btn-stamp" onClick={startGame}>
-          Assumir o plantão
-        </button>
-        <button className="btn-paper" onClick={toggleManual}>
-          Manual do Observador
-        </button>
+        <div className="dossier-tab">arquivo de sujeitos · acesso restrito</div>
+        <div className="title-cast">
+          {CAST.map((id, index) => (
+            <div key={id} className="cast-slot" style={{ '--cast-index': index } as CSSProperties}>
+              <CharacterArt defId={id} />
+              <span>{getDef(id).name}</span>
+            </div>
+          ))}
+        </div>
+        <div className="dossier-note">não observe sem autorização</div>
+        <div className="dossier-stamp" aria-hidden="true">
+          confidencial
+        </div>
       </motion.div>
     </div>
   )

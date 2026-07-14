@@ -1,6 +1,7 @@
 import { AnimatePresence, motion } from 'motion/react'
 import { useCallback } from 'react'
 import type { CSSProperties } from 'react'
+import { getDef } from '../engine/cards'
 import { canPlay } from '../engine/game'
 import { clickHandCard, refRegistry, useStore } from '../state/store'
 import { CardView } from './CardView'
@@ -29,13 +30,19 @@ export function PlayerHand() {
           '--fan-rot': `${spread * 8}deg`,
         } as CSSProperties
         return (
-          <div
+          <button
+            type="button"
             key={h.uid}
             className={`hand-card ${playable ? 'playable' : 'unplayable'}`}
             style={style}
-            role="button"
-            aria-label={`jogar ficha ${h.defId}`}
+            aria-label={`Jogar ficha ${getDef(h.defId).name}`}
             onClick={(e) => {
+              e.stopPropagation()
+              clickHandCard(h.uid)
+            }}
+            onKeyDown={(e) => {
+              if (e.key !== 'Enter' && e.key !== ' ') return
+              e.preventDefault()
               e.stopPropagation()
               clickHandCard(h.uid)
             }}
@@ -43,7 +50,7 @@ export function PlayerHand() {
             <div className="hand-card-inner">
               <CardView defId={h.defId} size="hand" showCost />
             </div>
-          </div>
+          </button>
         )
       })}
     </div>
