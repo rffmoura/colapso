@@ -1,6 +1,8 @@
 import { AnimatePresence, motion } from 'motion/react'
+import { useCallback } from 'react'
+import type { CSSProperties } from 'react'
 import { canPlay } from '../engine/game'
-import { clickHandCard, useStore } from '../state/store'
+import { clickHandCard, refRegistry, useStore } from '../state/store'
 import { CardView } from './CardView'
 
 export function PlayerHand() {
@@ -8,44 +10,42 @@ export function PlayerHand() {
   const hand = st.game.sides.player.hand
   const myTurn = st.game.active === 'player' && !st.busy && st.phase === 'game'
   const n = hand.length
+  const registerRef = useCallback((el: HTMLDivElement | null) => {
+    if (el) refRegistry.set('hand-player', el)
+    else refRegistry.delete('hand-player')
+  }, [])
 
   return (
-    <div className="hand">
-      <AnimatePresence>
-        {hand.map((h, i) => {
-          const spread = (i - (n - 1) / 2) / Math.max(1, n - 1)
-          const rotate = spread * 8
-          const y = Math.abs(spread) * 14
-          const playable = myTurn && canPlay(st.game, 'player', h.uid)
-          return (
-            <motion.div
-              key={h.uid}
-              layoutId={`unit-${h.uid}`}
-              layout="position"
-              className={`hand-card ${playable ? 'playable' : 'unplayable'}`}
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0, transition: { duration: 0.22 } }}
-              role="button"
-              aria-label={`jogar ficha ${h.defId}`}
-              onClick={(e) => {
-                e.stopPropagation()
-                clickHandCard(h.uid)
-              }}
-            >
-              <motion.div
-                initial={{ y: 170 }}
-                animate={{ y }}
-                whileHover={{ y: y - 56, scale: 1.12 }}
-                transition={{ type: 'spring', stiffness: 300, damping: 28 }}
-                style={{ rotate, transformOrigin: 'bottom center' }}
-              >
-                <CardView defId={h.defId} size="hand" showCost />
-              </motion.div>
-            </motion.div>
-          )
-        })}
-      </AnimatePresence>
+    <div className="hand" ref={registerRef}>
+      {hand.map((h, i) => {
+        const spread = (i - (n - 1) / 2) / Math.max(1, n - 1)
+        // sobreposição cresce com o tamanho da mão para o leque caber na tela
+        const overlap = -(1.2 + n * 0.16)
+        const playable = myTurn && canPlay(st.game, 'player', h.uid)
+        const style = {
+          marginInline: `${overlap}rem`,
+          zIndex: i,
+          '--fan-y': `${Math.abs(spread) * 14}px`,
+          '--fan-rot': `${spread * 8}deg`,
+        } as CSSProperties
+        return (
+          <div
+            key={h.uid}
+            className={`hand-card ${playable ? 'playable' : 'unplayable'}`}
+            style={style}
+            role="button"
+            aria-label={`jogar ficha ${h.defId}`}
+            onClick={(e) => {
+              e.stopPropagation()
+              clickHandCard(h.uid)
+            }}
+          >
+            <div className="hand-card-inner">
+              <CardView defId={h.defId} size="hand" showCost />
+            </div>
+          </div>
+        )
+      })}
     </div>
   )
 }
@@ -53,8 +53,12 @@ export function PlayerHand() {
 export function AiHand() {
   const st = useStore()
   const count = st.game.sides.ai.hand.length
+  const registerRef = useCallback((el: HTMLDivElement | null) => {
+    if (el) refRegistry.set('hand-ai', el)
+    else refRegistry.delete('hand-ai')
+  }, [])
   return (
-    <div className="ai-hand">
+    <div className="ai-hand" ref={registerRef}>
       <AnimatePresence>
         {Array.from({ length: count }, (_, i) => (
           <motion.div

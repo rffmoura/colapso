@@ -5,6 +5,7 @@ import { BoardCreature } from './BoardCreature'
 import { AiHand, PlayerHand } from './Hand'
 import { HeroPanel } from './HeroPanel'
 import { EntangleLayer, TargetingArrow, TurnBanner } from './Overlays'
+import { DrawFxLayer, PileGroup } from './Piles'
 
 export function GameBoard() {
   const st = useStore()
@@ -28,6 +29,7 @@ export function GameBoard() {
         <div className="row-top">
           <HeroPanel owner="ai" />
           <AiHand />
+          <PileGroup owner="ai" />
           {st.aiThinking && <div className="ai-thinking">o autômato datilografa uma resposta…</div>}
         </div>
 
@@ -65,12 +67,14 @@ export function GameBoard() {
         <div className="row-bottom">
           <HeroPanel owner="player" />
           <PlayerHand />
+          <PileGroup owner="player" />
         </div>
       </div>
 
       <EntangleLayer />
       <TargetingArrow />
       <TurnBanner />
+      <DrawFxLayer />
     </LayoutGroup>
   )
 }

@@ -61,6 +61,8 @@ export interface StoreState {
   manualOpen: boolean
   /** incrementa a cada impacto para sacudir o tabuleiro */
   shakeTick: number
+  /** compras em andamento: cartas-fantasma voando do arquivo para a mão */
+  drawFx: Array<{ id: number; owner: Owner; count: number }>
 }
 
 /** Registro de elementos DOM por alvo, para linhas de emaranhamento e investidas */
@@ -90,6 +92,7 @@ let state: StoreState = {
   memoQueue: [],
   manualOpen: false,
   shakeTick: 0,
+  drawFx: [],
 }
 
 const seenMemos = loadSeenMemos()
@@ -167,9 +170,13 @@ function apply(step: StepResult): GameEvent[] {
       case 'death':
         sfx.death()
         break
-      case 'draw':
+      case 'draw': {
         sfx.draw()
+        const fx = { id: fxId++, owner: e.owner, count: e.count }
+        set({ drawFx: [...state.drawFx, fx] })
+        setTimeout(() => set({ drawFx: state.drawFx.filter((d) => d.id !== fx.id) }), 1400)
         break
+      }
       case 'burn':
         pushFx(`hero-${e.owner}`, 'ficha extraviada', 'info')
         break

@@ -20,6 +20,9 @@
 
 * { margin: 0; padding: 0; box-sizing: border-box; }
 
+/* raiz fluida: toda a UI é dimensionada em rem, então escala junto com a tela */
+html { font-size: clamp(14px, 0.65vw + 0.55vh + 3px, 26px); }
+
 html, body, #root { height: 100%; }
 
 body {
@@ -173,9 +176,20 @@ button { font-family: inherit; color: inherit; background: none; border: none; c
   gap: 0.35rem;
 }
 
+/* as faixas nunca alargam o grid além do viewport */
+.game > * { min-width: 0; }
+
 .row-top { display: flex; align-items: center; gap: 1.2rem; }
 
 .row-bottom { display: flex; align-items: flex-end; gap: 1.2rem; }
+
+.ai-thinking {
+  flex: 0 1 auto;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
 
 .battlefield {
   position: relative;
@@ -200,12 +214,12 @@ button { font-family: inherit; color: inherit; background: none; border: none; c
 
 .zone-label {
   position: absolute;
-  left: -1.7rem;
+  left: -1.8rem;
   top: 50%;
   transform: translateY(-50%) rotate(180deg);
   writing-mode: vertical-rl;
   font-family: var(--font-type);
-  font-size: 0.62rem;
+  font-size: 0.72rem;
   letter-spacing: 0.28em;
   text-transform: uppercase;
   color: var(--ink-soft);
@@ -214,7 +228,7 @@ button { font-family: inherit; color: inherit; background: none; border: none; c
 
 .zone-empty {
   font-family: var(--font-type);
-  font-size: 0.75rem;
+  font-size: 0.85rem;
   letter-spacing: 0.24em;
   text-transform: uppercase;
   color: oklch(0.25 0.02 60 / 0.35);
@@ -227,13 +241,13 @@ button { font-family: inherit; color: inherit; background: none; border: none; c
   right: 0;
   top: 50%;
   transform: translateY(-50%) rotate(6deg);
-  width: 5.4rem;
-  height: 5.4rem;
+  width: 6.2rem;
+  height: 6.2rem;
   border-radius: 50%;
   border: 3px solid var(--ink);
   background: var(--energy);
   font-family: var(--font-display);
-  font-size: 0.62rem;
+  font-size: 0.7rem;
   letter-spacing: 0.1em;
   text-transform: uppercase;
   line-height: 1.25;
@@ -248,7 +262,7 @@ button { font-family: inherit; color: inherit; background: none; border: none; c
 
 .ai-thinking {
   font-family: var(--font-type);
-  font-size: 0.72rem;
+  font-size: 0.82rem;
   letter-spacing: 0.14em;
   color: var(--ink-soft);
   animation: thinking-blink 1.4s ease-in-out infinite;
@@ -266,39 +280,43 @@ button { font-family: inherit; color: inherit; background: none; border: none; c
   box-shadow: var(--shadow-print);
   display: flex;
   flex-direction: column;
-  overflow: hidden;
+  /* overflow visível para os tooltips internos não serem cortados */
+  overflow: visible;
   transition: box-shadow 0.25s var(--ease-out), border-color 0.25s var(--ease-out);
 }
 
-.card.size-hand { width: 11.6rem; height: 16.4rem; }
-.card.size-board { width: 9.6rem; height: 12.6rem; }
+.card.size-hand { width: 12.4rem; height: 17.2rem; }
+.card.size-board { width: 10.2rem; height: 13rem; }
 
 /* cabeçalho: nome nunca coberto */
 
 .card-head {
   background: var(--ink);
   color: var(--paper-card);
-  padding: 0.42rem 2.5rem 0.34rem 0.6rem;
-  min-height: 2.5rem;
+  padding: 0.46rem 2.7rem 0.38rem 0.6rem;
+  min-height: 2.9rem;
+  border-radius: 7px 7px 0 0;
   display: flex;
   flex-direction: column;
   justify-content: center;
-  gap: 0.08rem;
+  gap: 0.1rem;
 }
+
+.size-board .card-head { min-height: 2.3rem; padding-right: 2.3rem; }
 
 .card-name {
   font-family: var(--font-display);
-  font-size: 0.78rem;
+  font-size: 0.92rem;
   letter-spacing: 0.02em;
   line-height: 1.05;
   text-transform: uppercase;
 }
 
-.size-board .card-name { font-size: 0.66rem; }
+.size-board .card-name { font-size: 0.78rem; }
 
 .card-title {
   font-family: var(--font-type);
-  font-size: 0.52rem;
+  font-size: 0.6rem;
   letter-spacing: 0.06em;
   opacity: 0.75;
   white-space: nowrap;
@@ -313,19 +331,19 @@ button { font-family: inherit; color: inherit; background: none; border: none; c
   top: 0.3rem;
   right: 0.3rem;
   z-index: 6;
-  width: 1.9rem;
-  height: 1.9rem;
+  width: 2.2rem;
+  height: 2.2rem;
   border-radius: 50%;
   border: 2.5px solid var(--ink);
   background: var(--energy);
   display: grid;
   place-items: center;
   font-family: var(--font-display);
-  font-size: 0.95rem;
+  font-size: 1.05rem;
   color: var(--ink);
 }
 
-.size-board .card-cost { width: 1.6rem; height: 1.6rem; font-size: 0.8rem; }
+.size-board .card-cost { width: 1.8rem; height: 1.8rem; font-size: 0.9rem; }
 
 /* janela de arte */
 
@@ -339,15 +357,18 @@ button { font-family: inherit; color: inherit; background: none; border: none; c
     var(--paper-dim);
   background-size: 7px 7px, auto;
   flex: 1;
-  min-height: 0;
+  /* garante o protagonismo do personagem mesmo com textos maiores */
+  min-height: 4.8rem;
   overflow: hidden;
 }
+
+.size-board .card-window { min-height: 4rem; }
 
 .char-svg { position: absolute; inset: 4%; width: 92%; height: 92%; }
 
 /* bloco de estados A/B */
 
-.state-rows { padding: 0 0.5rem 0.2rem; display: grid; gap: 0.22rem; }
+.state-rows { padding: 0 0.5rem 0.2rem; display: grid; gap: 0.24rem; min-width: 0; }
 
 .state-row {
   display: flex;
@@ -355,18 +376,20 @@ button { font-family: inherit; color: inherit; background: none; border: none; c
   gap: 0.34rem;
   border: 1.6px solid var(--ink);
   border-radius: 5px;
-  padding: 0.16rem 0.4rem;
+  padding: 0.18rem 0.42rem;
   font-family: var(--font-body);
-  font-size: 0.6rem;
+  font-size: 0.66rem;
   background: var(--paper-card);
   transition: opacity 0.3s, background 0.3s;
+  /* nunca vazar para fora da ficha: o nome cede espaço via ellipsis */
+  min-width: 0;
 }
 
 .state-row .state-tag {
   font-family: var(--font-display);
-  font-size: 0.58rem;
-  width: 1.05rem;
-  height: 1.05rem;
+  font-size: 0.62rem;
+  width: 1.15rem;
+  height: 1.15rem;
   border-radius: 3px;
   display: grid;
   place-items: center;
@@ -385,12 +408,14 @@ button { font-family: inherit; color: inherit; background: none; border: none; c
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
+  min-width: 0;
 }
 
 .state-row .state-stats {
   font-family: var(--font-display);
-  font-size: 0.72rem;
+  font-size: 0.82rem;
   white-space: nowrap;
+  flex: none;
 }
 
 .state-row .state-stats .atk { color: var(--particle); }
@@ -418,20 +443,22 @@ button { font-family: inherit; color: inherit; background: none; border: none; c
 .super-seal {
   position: absolute;
   left: 0.34rem;
-  top: 2.75rem;
+  top: 3.2rem;
   z-index: 6;
-  width: 1.5rem;
-  height: 1.5rem;
+  width: 1.7rem;
+  height: 1.7rem;
   border-radius: 50%;
   border: 2px dashed var(--entangle);
   color: var(--entangle);
   display: grid;
   place-items: center;
   font-family: var(--font-type);
-  font-size: 0.8rem;
+  font-size: 0.95rem;
   background: var(--paper-card);
   animation: seal-tick 2.6s ease-in-out infinite;
 }
+
+.size-board .super-seal { top: 2.55rem; }
 
 @keyframes seal-tick { 0%, 100% { rotate: -8deg; } 50% { rotate: 8deg; } }
 
@@ -442,8 +469,8 @@ button { font-family: inherit; color: inherit; background: none; border: none; c
   right: 0.3rem;
   bottom: 0.3rem;
   z-index: 6;
-  min-width: 1.9rem;
-  height: 1.9rem;
+  min-width: 2.1rem;
+  height: 2.1rem;
   padding: 0 0.3rem;
   border-radius: 50%;
   border: 2.5px solid var(--ink);
@@ -461,11 +488,11 @@ button { font-family: inherit; color: inherit; background: none; border: none; c
 
 .card-text {
   font-family: var(--font-type);
-  font-size: 0.6rem;
+  font-size: 0.7rem;
   line-height: 1.45;
   color: var(--ink);
   padding: 0.3rem 0.55rem 0.4rem;
-  min-height: 2.9rem;
+  min-height: 3.2rem;
 }
 
 .size-board .card-text { display: none; }
@@ -474,11 +501,11 @@ button { font-family: inherit; color: inherit; background: none; border: none; c
   display: flex;
   justify-content: space-between;
   font-family: var(--font-type);
-  font-size: 0.5rem;
+  font-size: 0.56rem;
   letter-spacing: 0.14em;
   text-transform: uppercase;
   color: var(--ink-soft);
-  padding: 0 0.55rem 0.34rem;
+  padding: 0 0.55rem 0.36rem;
 }
 
 .size-board .card-footer { display: none; }
@@ -487,7 +514,7 @@ button { font-family: inherit; color: inherit; background: none; border: none; c
 
 .kw {
   position: relative;
-  font-size: 0.52rem;
+  font-size: 0.58rem;
   font-weight: 700;
   letter-spacing: 0.06em;
   text-transform: uppercase;
@@ -512,19 +539,25 @@ button { font-family: inherit; color: inherit; background: none; border: none; c
   transform: translateX(-50%) rotate(-0.5deg);
   z-index: 60;
   width: max-content;
-  max-width: 15rem;
+  max-width: 18rem;
   background: var(--ink);
   color: var(--paper-card);
   font-family: var(--font-type);
-  font-size: 0.62rem;
+  font-size: 0.78rem;
   letter-spacing: 0.02em;
-  line-height: 1.5;
+  line-height: 1.55;
   text-transform: none;
-  padding: 0.45rem 0.6rem;
+  padding: 0.55rem 0.75rem;
   border-radius: 5px;
   box-shadow: var(--shadow-print);
   pointer-events: none;
   white-space: normal;
+}
+
+/* elementos no topo da tela abrem o tooltip para BAIXO */
+[data-tip].tip-down:hover::after {
+  bottom: auto;
+  top: calc(100% + 8px);
 }
 
 /* ---------- criatura no campo ---------- */
@@ -661,13 +694,33 @@ button { font-family: inherit; color: inherit; background: none; border: none; c
   display: flex;
   justify-content: center;
   flex: 1;
-  height: 17rem;
+  min-width: 0;
+  height: 17.8rem;
   align-items: flex-end;
   padding-bottom: 0.55rem;
 }
 
-.hand-card { position: relative; margin: 0 -1.5rem; will-change: transform; }
-.hand-card:hover { z-index: 24; }
+.hand-card { position: relative; will-change: transform; }
+.hand-card:hover { z-index: 24 !important; }
+
+/* leque 100% CSS: entrada, posição e hover — imune a conflitos de projeção */
+.hand-card-inner {
+  transform: translateY(var(--fan-y, 0px)) rotate(var(--fan-rot, 0deg));
+  transform-origin: bottom center;
+  transition: transform 0.26s var(--ease-out);
+  animation: hand-enter 0.5s var(--ease-out) backwards;
+}
+
+.hand-card:hover .hand-card-inner {
+  transform: translateY(calc(var(--fan-y, 0px) - 3.6rem)) scale(1.13) rotate(0deg);
+}
+
+@keyframes hand-enter {
+  from {
+    transform: translateY(calc(var(--fan-y, 0px) + 11rem)) rotate(var(--fan-rot, 0deg));
+    opacity: 0;
+  }
+}
 
 .hand-card .card { cursor: pointer; }
 
@@ -686,8 +739,8 @@ button { font-family: inherit; color: inherit; background: none; border: none; c
 .ai-hand { display: flex; gap: 0.3rem; }
 
 .card-back {
-  width: 3rem;
-  height: 4.3rem;
+  width: 3.4rem;
+  height: 4.9rem;
   border-radius: 6px;
   background: var(--paper-dim);
   border: 2px solid var(--ink);
@@ -702,7 +755,103 @@ button { font-family: inherit; color: inherit; background: none; border: none; c
 .card-back::after {
   content: '½';
   font-family: var(--font-display);
-  font-size: 1.1rem;
+  font-size: 1.3rem;
+  color: var(--ink-soft);
+}
+
+/* ---------- pilhas físicas: arquivo e descarte ---------- */
+
+.pile-group { display: flex; gap: 0.8rem; align-items: flex-end; padding-bottom: 0.4rem; }
+
+.row-top .pile-group { align-items: center; padding-bottom: 0; }
+
+.pile { position: relative; width: 4.8rem; flex: none; }
+
+.pile-stack { position: relative; width: 4.8rem; height: 6.5rem; }
+
+.pile-back {
+  position: absolute;
+  inset: 0;
+  border-radius: 8px;
+  border: 2px solid var(--ink);
+  background: var(--paper-dim);
+  box-shadow: 2px 2px 0 var(--ink-faint);
+  display: grid;
+  place-items: center;
+}
+
+.pile-back::after {
+  content: '½';
+  font-family: var(--font-display);
+  font-size: 1.5rem;
+  color: var(--ink-soft);
+}
+
+.pile-back.b1 { transform: translate(3px, 3px) rotate(1.8deg); }
+.pile-back.b2 { transform: translate(-2px, 5px) rotate(-1.4deg); }
+
+.pile-stack.empty {
+  border: 2px dashed oklch(0.25 0.02 60 / 0.35);
+  border-radius: 8px;
+}
+
+.pile-discard-top {
+  position: absolute;
+  inset: 0;
+  border-radius: 8px;
+  border: 2px solid var(--ink);
+  background: var(--paper-card);
+  overflow: hidden;
+  box-shadow: 2px 2px 0 var(--ink-faint);
+}
+
+.pile-count {
+  position: absolute;
+  top: -0.65rem;
+  right: -0.65rem;
+  z-index: 3;
+  min-width: 1.8rem;
+  height: 1.8rem;
+  padding: 0 0.3rem;
+  border-radius: 50%;
+  background: var(--ink);
+  color: var(--paper-card);
+  font-family: var(--font-display);
+  font-size: 0.82rem;
+  display: grid;
+  place-items: center;
+  border: 2px solid var(--paper-card);
+}
+
+.pile-label {
+  font-family: var(--font-type);
+  font-size: 0.62rem;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--ink-soft);
+  text-align: center;
+  margin-top: 0.35rem;
+  white-space: nowrap;
+}
+
+.draw-ghost {
+  position: fixed;
+  z-index: 35;
+  width: 3.6rem;
+  height: 5.1rem;
+  border-radius: 6px;
+  border: 2px solid var(--ink);
+  background: var(--paper-dim);
+  box-shadow: 2px 2px 0 var(--ink-faint);
+  pointer-events: none;
+  display: grid;
+  place-items: center;
+}
+
+.draw-ghost::after {
+  content: '½';
+  font-family: var(--font-display);
+  font-size: 1.2rem;
   color: var(--ink-soft);
 }
 
@@ -735,7 +884,7 @@ button { font-family: inherit; color: inherit; background: none; border: none; c
 
 .hero-name {
   font-family: var(--font-type);
-  font-size: 0.6rem;
+  font-size: 0.7rem;
   letter-spacing: 0.14em;
   text-transform: uppercase;
   color: var(--ink-soft);
@@ -744,7 +893,7 @@ button { font-family: inherit; color: inherit; background: none; border: none; c
 
 .hero-coherence {
   font-family: var(--font-display);
-  font-size: 1.6rem;
+  font-size: 1.9rem;
   line-height: 1;
   color: var(--approve);
 }
@@ -753,17 +902,17 @@ button { font-family: inherit; color: inherit; background: none; border: none; c
 
 .hero-coherence small {
   font-family: var(--font-type);
-  font-size: 0.55rem;
+  font-size: 0.62rem;
   letter-spacing: 0.1em;
   color: var(--ink-soft);
   margin-left: 0.3rem;
 }
 
-.qubit-row { display: flex; gap: 0.24rem; margin-top: 0.4rem; }
+.qubit-row { display: flex; gap: 0.26rem; margin-top: 0.42rem; }
 
 .qubit {
-  width: 0.75rem;
-  height: 0.75rem;
+  width: 0.88rem;
+  height: 0.88rem;
   border-radius: 50%;
   border: 2px solid var(--ink);
   background: var(--paper-card);
@@ -773,14 +922,14 @@ button { font-family: inherit; color: inherit; background: none; border: none; c
 
 .deck-count {
   font-family: var(--font-type);
-  font-size: 0.6rem;
+  font-size: 0.7rem;
   letter-spacing: 0.08em;
   text-transform: uppercase;
   color: var(--ink-soft);
   line-height: 1.7;
 }
 
-.deck-count b { color: var(--ink); font-size: 0.72rem; }
+.deck-count b { color: var(--ink); font-size: 0.85rem; }
 
 .btn-heropower {
   display: grid;
@@ -823,13 +972,13 @@ button { font-family: inherit; color: inherit; background: none; border: none; c
 }
 
 .btn-icon {
-  width: 2.1rem;
-  height: 2.1rem;
+  width: 2.5rem;
+  height: 2.5rem;
   border: 2px solid var(--ink);
   border-radius: 50%;
   background: var(--paper-card);
   font-family: var(--font-display);
-  font-size: 0.85rem;
+  font-size: 1rem;
   box-shadow: 2px 2px 0 var(--ink-faint);
   display: grid;
   place-items: center;
@@ -999,7 +1148,7 @@ button { font-family: inherit; color: inherit; background: none; border: none; c
   right: 1.2rem;
   bottom: 1.2rem;
   z-index: 46;
-  width: 19rem;
+  width: 22rem;
   background: oklch(0.93 0.06 95);
   border: 2px solid var(--ink);
   border-radius: 3px;
@@ -1022,20 +1171,20 @@ button { font-family: inherit; color: inherit; background: none; border: none; c
 
 .memo-kicker {
   font-family: var(--font-type);
-  font-size: 0.58rem;
+  font-size: 0.66rem;
   letter-spacing: 0.22em;
   text-transform: uppercase;
   color: var(--particle);
   margin-bottom: 0.3rem;
 }
 
-.memo-title { font-family: var(--font-display); font-size: 0.82rem; text-transform: uppercase; margin-bottom: 0.35rem; }
+.memo-title { font-family: var(--font-display); font-size: 0.98rem; text-transform: uppercase; margin-bottom: 0.4rem; }
 
-.memo-text { font-family: var(--font-type); font-size: 0.72rem; line-height: 1.6; margin-bottom: 0.6rem; }
+.memo-text { font-family: var(--font-type); font-size: 0.84rem; line-height: 1.6; margin-bottom: 0.7rem; }
 
 .memo-btn {
   font-family: var(--font-type);
-  font-size: 0.66rem;
+  font-size: 0.76rem;
   letter-spacing: 0.1em;
   text-transform: uppercase;
   border: 2px solid var(--ink);
@@ -1064,35 +1213,35 @@ button { font-family: inherit; color: inherit; background: none; border: none; c
   border: 3px solid var(--ink);
   border-radius: 6px;
   box-shadow: 8px 10px 0 oklch(0.25 0.02 60 / 0.3);
-  max-width: 44rem;
-  max-height: 86dvh;
+  max-width: 56rem;
+  max-height: 88dvh;
   overflow-y: auto;
-  padding: 2rem 2.4rem;
+  padding: 2.2rem 2.8rem;
 }
 
 .manual h2 {
   font-family: var(--font-display);
-  font-size: 1.3rem;
+  font-size: 1.7rem;
   text-transform: uppercase;
   letter-spacing: 0.06em;
-  margin-bottom: 0.2rem;
+  margin-bottom: 0.25rem;
 }
 
-.manual .manual-sub { font-family: var(--font-type); font-size: 0.72rem; letter-spacing: 0.2em; text-transform: uppercase; color: var(--ink-soft); margin-bottom: 1.2rem; }
+.manual .manual-sub { font-family: var(--font-type); font-size: 0.82rem; letter-spacing: 0.2em; text-transform: uppercase; color: var(--ink-soft); margin-bottom: 1.3rem; }
 
 .manual h3 {
   font-family: var(--font-display);
-  font-size: 0.82rem;
+  font-size: 1.05rem;
   text-transform: uppercase;
-  margin: 1.1rem 0 0.3rem;
+  margin: 1.2rem 0 0.35rem;
   display: flex;
   align-items: center;
   gap: 0.5rem;
 }
 
-.manual h3 .dot { width: 0.7rem; height: 0.7rem; border-radius: 50%; border: 2px solid var(--ink); flex: none; }
+.manual h3 .dot { width: 0.8rem; height: 0.8rem; border-radius: 50%; border: 2px solid var(--ink); flex: none; }
 
-.manual p { font-family: var(--font-type); font-size: 0.8rem; line-height: 1.7; }
+.manual p { font-family: var(--font-type); font-size: 0.95rem; line-height: 1.7; }
 
 .manual .close-row { display: flex; justify-content: flex-end; margin-top: 1.4rem; }
 

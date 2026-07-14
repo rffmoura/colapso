@@ -57,6 +57,8 @@ export function HeroPanel({ owner }: { owner: Owner }) {
   const isPlayer = owner === 'player'
   const powerReady = isPlayer && !side.heroPowerUsed && side.qubits >= HERO_POWER_COST
   const powerArmed = st.selection?.type === 'heropower'
+  // no painel do topo (Autômato), tooltips abrem para baixo para não sair da tela
+  const tipDown = isPlayer ? '' : ' tip-down'
 
   return (
     <div
@@ -71,24 +73,29 @@ export function HeroPanel({ owner }: { owner: Owner }) {
       <div>
         <div className="hero-name">{isPlayer ? 'Você · Observador' : 'O Autômato'}</div>
         <div
-          className={`hero-coherence${side.coherence <= 8 ? ' low' : ''}`}
-          data-tip="Coerência: sua vida. Chegou a zero, acabou o plantão."
+          className={`hero-coherence${side.coherence <= 8 ? ' low' : ''}${tipDown}`}
+          data-tip={
+            isPlayer
+              ? 'Coerência: sua vida. Chegou a zero, acabou o plantão.'
+              : 'Coerência do Autômato: zere para vencer.'
+          }
         >
           {side.coherence}
           <small>coerência</small>
         </div>
-        <div className="qubit-row" data-tip={`Qubits: energia do turno (${side.qubits}/${side.maxQubits}). Cresce 1 por turno.`}>
+        <div
+          className={`qubit-row${tipDown}`}
+          data-tip={`Qubits: energia do turno (${side.qubits}/${side.maxQubits}). Cresce 1 por turno.`}
+        >
           {Array.from({ length: side.maxQubits }, (_, i) => (
             <span key={i} className={`qubit${i < side.qubits ? ' full' : ''}`} />
           ))}
         </div>
       </div>
-      <div className="deck-count" data-tip="Arquivo: seu deck. Quando esvazia, o descarte volta embaralhado.">
-        arquivo <b>{side.deck.length}</b>
+      <div className={`deck-count${tipDown}`} data-tip="Fichas na mão.">
+        mão
         <br />
-        descarte <b>{side.discard.length}</b>
-        <br />
-        mão <b>{side.hand.length}</b>
+        <b>{side.hand.length}</b>
       </div>
       {isPlayer && (
         <button
