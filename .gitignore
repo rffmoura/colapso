@@ -1,0 +1,27 @@
+# dependências
+node_modules/
+
+# build e caches
+dist/
+*.tsbuildinfo
+.vite/
+
+# logs
+*.log
+npm-debug.log*
+
+# ambiente e segredos
+.env
+.env.*
+
+# sistema operacional
+.DS_Store
+Thumbs.db
+
+# editores
+.idea/
+.vscode/
+*.swp
+
+# config local do Claude Code (a launch.json compartilhada fica versionada)
+.claude/settings.local.json
