@@ -13,6 +13,7 @@ import {
   entangleCreatures,
   findCreature,
   grantTempKeywords,
+  keywordsOf,
   newGame,
   payHeroPower,
   paySpell,
@@ -63,6 +64,8 @@ export interface StoreState {
   shakeTick: number
   /** compras em andamento: cartas-fantasma voando do arquivo para a mão */
   drawFx: Array<{ id: number; owner: Owner; count: number }>
+  /** sujeitos com Barreira tremendo para explicar um ataque negado */
+  blockPulse: { id: number; uids: number[] } | null
 }
 
 /** Registro de elementos DOM por alvo, para linhas de emaranhamento e investidas */
@@ -93,6 +96,7 @@ let state: StoreState = {
   manualOpen: false,
   shakeTick: 0,
   drawFx: [],
+  blockPulse: null,
 }
 
 const seenMemos = loadSeenMemos()
@@ -120,6 +124,24 @@ export function toggleManual() {
 
 function shakeBoard() {
   set({ shakeTick: state.shakeTick + 1 })
+}
+
+/** Ataque negado por Barreira: treme os bloqueadores para mostrar o porquê. */
+function barrierBlockFeedback(attackerUid: number) {
+  const attacker = findCreature(state.game, attackerUid)
+  if (!attacker) return
+  const blockers = validAttackTargets(state.game, attacker)
+    .filter((t): t is Extract<TargetRef, { kind: 'creature' }> => t.kind === 'creature')
+    .map((t) => findCreature(state.game, t.uid))
+    .filter((c): c is NonNullable<typeof c> => !!c && keywordsOf(c).includes('barreira'))
+  if (blockers.length === 0) return
+  sfx.deny()
+  for (const b of blockers) pushFx(`c-${b.uid}`, 'barreira!', 'info')
+  const pulse = { id: fxId++, uids: blockers.map((b) => b.uid) }
+  set({ blockPulse: pulse })
+  setTimeout(() => {
+    if (state.blockPulse?.id === pulse.id) set({ blockPulse: null })
+  }, 650)
 }
 
 const listeners = new Set<() => void>()
@@ -441,6 +463,11 @@ export function clickCreature(uid: number) {
       clickTarget({ kind: 'creature', uid })
       return
     }
+    if (c.owner === 'ai') {
+      // alvo inimigo inválido: se for a Barreira que impede, treme os bloqueadores
+      barrierBlockFeedback(sel.uid)
+      return
+    }
   }
   // sem seleção: selecionar atacante próprio
   if (c.owner === 'player') {
@@ -462,7 +489,11 @@ function clickTarget(target: TargetRef) {
   const sel = state.selection
   if (!sel) return
   const valid = validTargetKeys(state)
-  if (!valid.has(keyOf(target))) return
+  if (!valid.has(keyOf(target))) {
+    // tentou ir na cara com Barreira no caminho: mostra quem bloqueia
+    if (sel.type === 'attacker' && target.kind === 'hero') barrierBlockFeedback(sel.uid)
+    return
+  }
 
   if (sel.type === 'attacker') {
     // didática na primeira vez: troca simultânea / decisão de correr ou trocar
@@ -625,6 +656,22 @@ if (import.meta.env.DEV) {
       const s = structuredClone(state.game)
       s.sides[owner].qubits = 8
       s.sides[owner].maxQubits = 8
+      set({ game: s })
+    },
+    summon: (defId: string, owner: Owner = 'player', face?: 0 | 1) => {
+      const s = structuredClone(state.game)
+      const def = getDef(defId)
+      s.board[owner].push({
+        uid: s.nextUid++,
+        defId,
+        owner,
+        collapsed: face ?? null,
+        hp: face !== undefined ? def.faces![face].health : 0,
+        attacksUsed: 0,
+        summonedTurn: 0,
+        entangledWith: null,
+        tempKeywords: [],
+      })
       set({ game: s })
     },
   }

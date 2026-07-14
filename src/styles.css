@@ -819,6 +819,21 @@ button { font-family: inherit; color: inherit; background: none; border: none; c
 
 .creature { position: relative; }
 
+/* ataque negado: a Barreira treme e acende para explicar o bloqueio */
+.creature.barrier-deny .card {
+  animation: barrier-deny 0.55s var(--ease-out);
+  box-shadow: 0 0 0 3px var(--particle), var(--shadow-print);
+  border-color: var(--particle);
+}
+
+@keyframes barrier-deny {
+  0%, 100% { transform: translateX(0); }
+  15% { transform: translateX(-8px) rotate(-2deg); }
+  35% { transform: translateX(7px) rotate(2deg); }
+  55% { transform: translateX(-5px) rotate(-1deg); }
+  75% { transform: translateX(3px); }
+}
+
 /* entrada em campo via CSS: imune aos congelamentos de tween do Motion */
 .creature-enter {
   animation: summon-enter 0.45s var(--ease-out) backwards;

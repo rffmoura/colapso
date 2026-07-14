@@ -70,6 +70,10 @@ function noise(dur: number, opts: { vol?: number; freq?: number; delay?: number 
 
 export const sfx = {
   select: () => tone(520, 0.08, { type: 'triangle', vol: 0.18 }),
+  deny: () => {
+    tone(180, 0.09, { type: 'square', vol: 0.2 })
+    tone(140, 0.14, { type: 'square', vol: 0.2, delay: 0.09 })
+  },
   draw: () => {
     tone(340, 0.09, { type: 'triangle', vol: 0.2 })
     tone(510, 0.09, { type: 'triangle', vol: 0.16, delay: 0.05 })

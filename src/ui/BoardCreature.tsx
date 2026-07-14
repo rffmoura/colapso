@@ -53,12 +53,15 @@ export function BoardCreature({ c }: { c: Creature }) {
   const showFaceChoice = st.selection?.type === 'polarizeFace' && st.selection.targetUid === c.uid
   const faces = showFaceChoice ? getDef(c.defId).faces! : null
 
+  const isBlocking = st.blockPulse?.uids.includes(c.uid) ?? false
+
   const classes = [
     'creature',
     canBeAttacker ? 'selectable-attacker' : '',
     isSelected ? 'selected' : '',
     isValidTarget ? 'valid-target' : '',
     exhausted && !isSelected ? 'exhausted' : '',
+    isBlocking ? 'barrier-deny' : '',
   ]
     .filter(Boolean)
     .join(' ')
