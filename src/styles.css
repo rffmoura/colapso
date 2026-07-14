@@ -560,6 +560,15 @@ button { font-family: inherit; color: inherit; background: none; border: none; c
   top: calc(100% + 8px);
 }
 
+/* botões fixos do canto superior direito: para baixo e alinhado à direita */
+.top-controls [data-tip]:hover::after {
+  bottom: auto;
+  top: calc(100% + 8px);
+  left: auto;
+  right: 0;
+  transform: rotate(-0.5deg);
+}
+
 /* ---------- criatura no campo ---------- */
 
 .creature { position: relative; }
