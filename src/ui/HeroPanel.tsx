@@ -78,38 +78,51 @@ export function HeroPanel({ owner }: { owner: Owner }) {
         clickHero(owner)
       }}
     >
-      <div className="hero-avatar">{isPlayer ? <ObserverFace /> : <AutomatonFace />}</div>
-      <div>
+      <div className="hero-identity">
+        <div className="hero-avatar">{isPlayer ? <ObserverFace /> : <AutomatonFace />}</div>
+        <span className="hero-code">{isPlayer ? 'OBS-01' : 'AUT-25'}</span>
+      </div>
+      <div className="hero-vitals">
         <div className="hero-name">{isPlayer ? 'Você · Observador' : 'O Autômato'}</div>
         <div
-          className={`hero-coherence${side.coherence <= 8 ? ' low' : ''}${tipDown}`}
+          className={`hero-readout${side.coherence <= 8 ? ' low' : ''}${tipDown}`}
           data-tip={
             isPlayer
               ? 'Coerência: sua vida. Chegou a zero, acabou o plantão.'
               : 'Coerência do Autômato: zere para vencer.'
           }
         >
-          {side.coherence}
-          <small>coerência</small>
+          <span className="hero-coherence">{side.coherence}</span>
+          <span className="hero-readout-copy">
+            <b>coerência</b>
+            <small>{side.coherence <= 8 ? 'sinal instável' : 'sinal estável'}</small>
+          </span>
         </div>
         <div
-          className={`qubit-row${tipDown}`}
+          className={`qubit-meter${tipDown}`}
           data-tip={`Qubits: energia do turno (${side.qubits}/${side.maxQubits}). Cresce 1 por turno.`}
         >
-          {Array.from({ length: side.maxQubits }, (_, i) => (
-            <span key={i} className={`qubit${i < side.qubits ? ' full' : ''}`} />
-          ))}
+          <div className="qubit-meter-head">
+            <span>qubits</span>
+            <b>{side.qubits}/{side.maxQubits}</b>
+          </div>
+          <div className="qubit-row">
+            {Array.from({ length: side.maxQubits }, (_, i) => (
+              <span key={i} className={`qubit${i < side.qubits ? ' full' : ''}`} />
+            ))}
+          </div>
         </div>
       </div>
       <div className={`deck-count${tipDown}`} data-tip="Fichas na mão.">
-        mão
-        <br />
+        <span>mão</span>
         <b>{side.hand.length}</b>
+        <small>fichas</small>
       </div>
       {isPlayer && (
         <button
           className={`btn-heropower${powerArmed ? ' armed' : ''}`}
           disabled={!powerReady || st.busy || st.game.active !== 'player'}
+          aria-label={`Observar por ${HERO_POWER_COST} qubits`}
           data-tip={`Observar (${HERO_POWER_COST} qubits, 1x por turno): colapsa qualquer sujeito.`}
           onClick={(e) => {
             e.stopPropagation()
