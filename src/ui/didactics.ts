@@ -42,6 +42,16 @@ export const MEMOS: Record<string, Memo> = {
     title: 'Refil do arquivo',
     text: 'Todo turno você compra até ficar com 5 fichas. Quando o arquivo esvazia, o descarte volta embaralhado — nunca existe turno morto. Gaste sem medo.',
   },
+  troca: {
+    id: 'troca',
+    title: 'Troca simultânea',
+    text: 'No combate entre sujeitos, os DOIS se ferem ao mesmo tempo: cada um causa seu ataque na vida do outro, e o dano acumula entre turnos. Atacar o Observador inimigo não gera revide.',
+  },
+  corrida: {
+    id: 'corrida',
+    title: 'Correr ou trocar?',
+    text: 'Ir na cara vale quando sua corrida é mais rápida. Mas um sujeito inimigo vivo bate TODO turno — matá-lo agora às vezes economiza mais vida do que o dano que você causaria. Quem ignora o campo entrega a escolha das trocas ao inimigo.',
+  },
 }
 
 const STORAGE_KEY = 'colapso-memos-v2'

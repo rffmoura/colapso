@@ -286,7 +286,7 @@ button { font-family: inherit; color: inherit; background: none; border: none; c
 }
 
 .card.size-hand { width: 12.4rem; height: 17.2rem; }
-.card.size-board { width: 10.2rem; height: 13rem; }
+.card.size-board { width: 10.6rem; height: 13rem; }
 
 /* cabeçalho: nome nunca coberto */
 
@@ -465,6 +465,7 @@ button { font-family: inherit; color: inherit; background: none; border: none; c
 /* vida atual (pós-colapso) */
 
 .hp-now {
+  /* vive DENTRO da janela de arte: nunca cobre as linhas A/B */
   position: absolute;
   right: 0.3rem;
   bottom: 0.3rem;
@@ -529,6 +530,15 @@ button { font-family: inherit; color: inherit; background: none; border: none; c
 
 .kw.kw-temp { background: var(--entangle); color: var(--paper-card); border-color: var(--ink); }
 
+/* selo compacto (mesa): uma letra, mesmo visual */
+.kw.kw-compact {
+  min-width: 1.2rem;
+  text-align: center;
+  padding: 0.06rem 0.14rem;
+  letter-spacing: 0;
+  flex: none;
+}
+
 [data-tip]:not(.card-cost, .super-seal, .hp-now) { position: relative; }
 
 [data-tip]:hover::after {
@@ -572,6 +582,18 @@ button { font-family: inherit; color: inherit; background: none; border: none; c
 /* ---------- criatura no campo ---------- */
 
 .creature { position: relative; }
+
+/* entrada em campo via CSS: imune aos congelamentos de tween do Motion */
+.creature-enter {
+  animation: summon-enter 0.45s var(--ease-out) backwards;
+}
+
+@keyframes summon-enter {
+  from {
+    opacity: 0;
+    transform: scale(0.6) translateY(20px);
+  }
+}
 
 .creature .card { transition: translate 0.2s var(--ease-out), box-shadow 0.25s var(--ease-out), border-color 0.2s; }
 .creature:hover .card { translate: 0 -4px; }

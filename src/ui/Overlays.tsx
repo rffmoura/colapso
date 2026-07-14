@@ -230,6 +230,14 @@ export function ManualOverlay() {
           máximo por turno (até 8) e eles recarregam inteiros a cada plantão.
         </p>
 
+        <h3><span className="dot" style={{ background: 'var(--ink)' }} />Combate</h3>
+        <p>
+          Cada estado tem ATAQUE (vermelho) e VIDA (azul). Combate entre sujeitos é uma troca
+          simultânea: cada um causa seu ataque na vida do outro, e o dano acumula entre turnos —
+          morre quem chegar a zero (às vezes, os dois). Atacar o Observador inimigo não gera revide.
+          Sujeito inimigo vivo ataca todo turno: às vezes vale mais removê-lo do que ir na cara.
+        </p>
+
         <h3><span className="dot" style={{ background: 'linear-gradient(90deg, var(--particle) 50%, var(--wave) 50%)' }} />Superposição</h3>
         <p>
           Toda ficha de sujeito tem DOIS estados: a linha A (vermelha) e a linha B (azul), com ataque,

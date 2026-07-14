@@ -60,12 +60,15 @@ export function CardView({ defId, collapsed = null, hp, size, tempKeywords = [],
 
       <div className="card-window">
         <CharacterArt defId={defId} />
+        {isCreature && !showSuperposed && collapsed !== null && hp !== undefined && (
+          <div className={`hp-now${hp < def.faces![collapsed].health ? ' hurt' : ''}`}>{hp}</div>
+        )}
       </div>
 
       {isCreature && (
         <div className="state-rows">
-          <StateRow idx={0} face={def.faces![0]} collapsed={showSuperposed ? null : collapsed} />
-          <StateRow idx={1} face={def.faces![1]} collapsed={showSuperposed ? null : collapsed} />
+          <StateRow idx={0} face={def.faces![0]} collapsed={showSuperposed ? null : collapsed} compact={size === 'board'} />
+          <StateRow idx={1} face={def.faces![1]} collapsed={showSuperposed ? null : collapsed} compact={size === 'board'} />
           {tempKeywords.length > 0 && (
             <div style={{ display: 'flex', gap: '0.25rem', justifyContent: 'center' }}>
               {tempKeywords.map((k) => (
@@ -98,18 +101,22 @@ export function CardView({ defId, collapsed = null, hp, size, tempKeywords = [],
         </div>
       )}
 
-      {isCreature && !showSuperposed && collapsed !== null && hp !== undefined && (
-        <div className={`hp-now${hp < def.faces![collapsed].health ? ' hurt' : ''}`} data-tip="Vida atual">
-          {hp}
-        </div>
-      )}
-
       {stage === 'stamp' && collapsed !== null && <StampFx face={collapsed} />}
     </div>
   )
 }
 
-function StateRow({ idx, face, collapsed }: { idx: 0 | 1; face: Face; collapsed: 0 | 1 | null }) {
+function StateRow({
+  idx,
+  face,
+  collapsed,
+  compact = false,
+}: {
+  idx: 0 | 1
+  face: Face
+  collapsed: 0 | 1 | null
+  compact?: boolean
+}) {
   const active = collapsed === idx
   const dead = collapsed !== null && collapsed !== idx
   return (
@@ -117,8 +124,9 @@ function StateRow({ idx, face, collapsed }: { idx: 0 | 1; face: Face; collapsed:
       <span className="state-tag">{idx === 0 ? 'A' : 'B'}</span>
       <span className="state-name">{face.label}</span>
       {face.keywords.map((k) => (
-        <span key={k} className="kw" data-tip={KW_TIP[k]}>
-          {k}
+        // na mesa a ficha é estreita: selo compacto de uma letra, tooltip completo
+        <span key={k} className={`kw${compact ? ' kw-compact' : ''}`} data-tip={KW_TIP[k]}>
+          {compact ? k[0] : k}
         </span>
       ))}
       <span className="state-stats">

@@ -465,6 +465,9 @@ function clickTarget(target: TargetRef) {
   if (!valid.has(keyOf(target))) return
 
   if (sel.type === 'attacker') {
+    // didática na primeira vez: troca simultânea / decisão de correr ou trocar
+    if (target.kind === 'creature') queueMemo('troca')
+    else if (state.game.board.ai.length > 0) queueMemo('corrida')
     set({ busy: true, selection: null })
     void (async () => {
       await attackSeq(sel.uid, target)

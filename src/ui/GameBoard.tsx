@@ -1,4 +1,4 @@
-import { AnimatePresence, LayoutGroup } from 'motion/react'
+import { AnimatePresence } from 'motion/react'
 import { useEffect, useRef, useState } from 'react'
 import { cancelSelection, endPlayerTurn, useStore } from '../state/store'
 import { BoardCreature } from './BoardCreature'
@@ -24,7 +24,7 @@ export function GameBoard() {
   }, [st.shakeTick])
 
   return (
-    <LayoutGroup>
+    <>
       <div className="game" onClick={cancelSelection}>
         <div className="row-top">
           <HeroPanel owner="ai" />
@@ -75,6 +75,6 @@ export function GameBoard() {
       <TargetingArrow />
       <TurnBanner />
       <DrawFxLayer />
-    </LayoutGroup>
+    </>
   )
 }
