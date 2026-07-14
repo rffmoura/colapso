@@ -104,8 +104,23 @@ button { font-family: inherit; color: inherit; background: none; border: none; c
   transform: rotate(-1deg);
 }
 
+.title-wordmark {
+  display: inline-flex;
+  align-items: center;
+  white-space: nowrap;
+}
+
 .title-logo .half-a { color: var(--particle); }
 .title-logo .half-b { color: var(--wave); }
+
+.title-logo-mark {
+  display: block;
+  width: 0.84em;
+  height: 0.84em;
+  flex: 0 0 auto;
+  margin-left: 0.005em;
+  transform: translateY(0.015em);
+}
 
 .title-sub {
   font-family: var(--font-type);

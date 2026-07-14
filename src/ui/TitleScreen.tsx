@@ -17,8 +17,11 @@ export function TitleScreen() {
       >
         <div className="title-kicker">instituto meia-vida · divisão de observação · turno da noite</div>
 
-        <h1 className="title-logo">
-          COLA<span className="half-a">P</span><span className="half-b">S</span>O
+        <h1 className="title-logo" aria-label="COLAPSO">
+          <span className="title-wordmark" aria-hidden="true">
+            COLA<span className="half-a">P</span><span className="half-b">S</span>
+            <img className="title-logo-mark" src="/colapso-mark.svg" alt="" />
+          </span>
         </h1>
 
         <p className="title-sub">Um duelo de fichas onde nada está decidido até alguém olhar.</p>
