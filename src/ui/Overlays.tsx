@@ -1,14 +1,18 @@
 import { AnimatePresence, motion } from 'motion/react'
 import { useEffect, useState } from 'react'
+import { getSecret } from '../engine/secrets'
 import {
+  closeSecretInspector,
   dismissAllMemos,
   dismissMemo,
+  inspectSecret,
   refRegistry,
   restart,
   toggleManual,
   useStore,
 } from '../state/store'
 import { MEMOS } from './didactics'
+import { SecretCard } from './SecretCard'
 
 export function TurnBanner() {
   const st = useStore()
@@ -108,7 +112,8 @@ export function EntangleLayer() {
 export function TargetingArrow() {
   const st = useStore()
   const [mouse, setMouse] = useState<{ x: number; y: number } | null>(null)
-  const active = st.selection !== null && st.selection.type !== 'polarizeFace'
+  const active =
+    st.selection !== null && st.selection.type !== 'polarizeFace' && st.selection.type !== 'influenceFace'
 
   useEffect(() => {
     if (!active) {
@@ -181,6 +186,106 @@ export function GameOverOverlay() {
         </button>
       </motion.div>
     </motion.div>
+  )
+}
+
+export function SecretRevealLayer() {
+  const st = useStore()
+  return (
+    <div className="secret-reveal-layer" aria-live="assertive">
+      <AnimatePresence>
+        {st.secretFx.slice(-1).map((item) => (
+          <motion.div
+            key={item.id}
+            className={`secret-reveal ${item.owner === 'player' ? 'mine' : 'theirs'}`}
+            initial={{ opacity: 0, y: item.owner === 'player' ? 70 : -70, rotateY: 90, scale: 0.82 }}
+            animate={{ opacity: 1, y: 0, rotateY: 0, scale: 1 }}
+            exit={{ opacity: 0, y: item.owner === 'player' ? 30 : -30, scale: 0.9 }}
+            transition={{ duration: 0.38, ease: [0.22, 1, 0.36, 1] }}
+          >
+            <div className="secret-reveal-kicker">
+              {item.owner === 'player' ? 'sua contramedida disparou' : 'contramedida inimiga revelada'}
+            </div>
+            <SecretCard id={item.secretId} />
+          </motion.div>
+        ))}
+      </AnimatePresence>
+    </div>
+  )
+}
+
+export function SecretInspector() {
+  const st = useStore()
+  const inspected = st.secretInspector
+  const secret = inspected ? getSecret(inspected.secretId) : null
+  const inspectedSide = inspected ? st.game.sides[inspected.owner] : null
+  const resolvedStatus =
+    inspected && inspectedSide?.activeSecret?.id === inspected.secretId
+      ? 'armed'
+      : inspected && inspectedSide?.revealedSecrets.includes(inspected.secretId)
+        ? 'used'
+        : inspected?.status
+
+  return (
+    <AnimatePresence>
+      {inspected && secret && (
+        <motion.div
+          className="secret-inspector-overlay"
+          onClick={closeSecretInspector}
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          exit={{ opacity: 0 }}
+          transition={{ duration: 0.18 }}
+        >
+          <motion.section
+            className={`secret-inspector ${resolvedStatus}`}
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="secret-inspector-title"
+            onClick={(event) => event.stopPropagation()}
+            initial={{ opacity: 0, y: 26, rotate: -1.4, scale: 0.96 }}
+            animate={{ opacity: 1, y: 0, rotate: -0.3, scale: 1 }}
+            exit={{ opacity: 0, y: 18, scale: 0.97 }}
+            transition={{ duration: 0.28, ease: [0.22, 1, 0.36, 1] }}
+          >
+            <div className="secret-inspector-copy">
+              <div className="secret-inspector-kicker">
+                {inspected.owner === 'player' ? 'seu arquivo de segurança' : 'arquivo interceptado do autômato'}
+              </div>
+              <h2 id="secret-inspector-title">{secret.name}</h2>
+              <div className="secret-inspector-status">
+                {resolvedStatus === 'armed' ? 'armada · disponível' : 'utilizada · efeito consumido'}
+              </div>
+              <p>
+                {resolvedStatus === 'armed'
+                  ? 'Esta contramedida ainda pode disparar neste duelo. Use o gatilho abaixo para planejar seu turno.'
+                  : 'Esta contramedida já disparou e não pode ativar novamente neste duelo. Ela permanece no painel para consulta.'}
+              </p>
+              {resolvedStatus === 'used' && inspectedSide && inspectedSide.revealedSecrets.length > 1 && (
+                <div className="secret-inspector-history" aria-label="Contramedidas já reveladas">
+                  <span>registros revelados</span>
+                  <div>
+                    {inspectedSide.revealedSecrets.map((id) => (
+                      <button
+                        key={id}
+                        className={id === inspected.secretId ? 'current' : ''}
+                        onClick={() => inspectSecret(inspected.owner, id, 'used')}
+                      >
+                        {getSecret(id).code}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              )}
+              <button className="btn-paper secret-inspector-close" onClick={closeSecretInspector} autoFocus>
+                Fechar ficha
+              </button>
+            </div>
+            <SecretCard id={inspected.secretId} used={resolvedStatus === 'used'} />
+          </motion.section>
+        </motion.div>
+      )}
+    </AnimatePresence>
   )
 }
 
@@ -262,8 +367,30 @@ export function ManualOverlay() {
         <h3><span className="dot" style={{ background: 'var(--particle)' }} />Colapso</h3>
         <p>
           Quando um sujeito em superposição ataca, é atacado ou é medido, ele COLAPSA: um carimbo
-          sorteia um dos dois estados (50/50) para sempre. Protocolos como Medição e o poder Observar
-          forçam o colapso na hora que for melhor para você.
+          sorteia um dos dois estados (50/50) para sempre. Medição mantém esse sorteio. Polarização
+          fixa com certeza o estado de um sujeito seu.
+        </p>
+
+        <h3><span className="dot" style={{ background: 'var(--wave)' }} />Observar</h3>
+        <p>
+          Por 2 qubits, uma vez por turno, você escolhe o estado A ou B desejado para qualquer sujeito.
+          A influência acerta em 75% dos casos; nos outros 25%, o estado oposto vence. Colapsos indiretos
+          causados por Emaranhamento não contam como uma nova influência.
+        </p>
+
+        <h3><span className="dot" style={{ background: 'var(--approve)' }} />Contramedidas</h3>
+        <p>
+          Cada lado entra com uma carta especial armada. A sua fica aberta; a do Autômato permanece
+          confidencial até disparar. Cada uma funciona no máximo uma vez por duelo. Efeitos de
+          contramedidas não ativam outras contramedidas. Clique na miniatura do painel para ler a
+          carta; depois do disparo, ela continua arquivada ali como utilizada.
+        </p>
+
+        <h3><span className="dot" style={{ background: 'var(--energy)' }} />Plantão contínuo</h3>
+        <p>
+          O Plantão tem três setores e o Autômato Supervisor. Após cada vitória regular, uma Diretriz
+          cumulativa fortalece a máquina e você adiciona uma contramedida ao arsenal. Uma derrota apaga
+          estágio, arsenal e Diretrizes; o próximo Plantão começa do zero.
         </p>
 
         <h3><span className="dot" style={{ background: 'var(--entangle)' }} />Emaranhamento</h3>

@@ -1,7 +1,8 @@
 import { useEffect } from 'react'
-import { cancelSelection, toggleManual, toggleMute, useStore } from './state/store'
+import { cancelSelection, closeSecretInspector, toggleManual, toggleMute, useStore } from './state/store'
 import { GameBoard } from './ui/GameBoard'
-import { GameOverOverlay, ManualOverlay, MemoToast } from './ui/Overlays'
+import { ManualOverlay, MemoToast, SecretInspector, SecretRevealLayer } from './ui/Overlays'
+import { BriefingScreen, RewardScreen, RunEndScreen, SecretDraftScreen } from './ui/RunScreens'
 import { TitleScreen } from './ui/TitleScreen'
 
 export default function App() {
@@ -9,7 +10,10 @@ export default function App() {
 
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') cancelSelection()
+      if (e.key === 'Escape') {
+        closeSecretInspector()
+        cancelSelection()
+      }
     }
     window.addEventListener('keydown', onKey)
     return () => window.removeEventListener('keydown', onKey)
@@ -30,8 +34,15 @@ export default function App() {
           S
         </button>
       </div>
-      {st.phase === 'title' ? <TitleScreen /> : <GameBoard />}
-      {st.phase === 'over' && <GameOverOverlay />}
+      {st.phase === 'title' && <TitleScreen />}
+      {st.phase === 'draft' && <SecretDraftScreen />}
+      {st.phase === 'briefing' && <BriefingScreen />}
+      {st.phase === 'game' && <GameBoard />}
+      {st.phase === 'reward' && <RewardScreen />}
+      {st.phase === 'run-lost' && <RunEndScreen won={false} />}
+      {st.phase === 'run-won' && <RunEndScreen won />}
+      <SecretRevealLayer />
+      <SecretInspector />
       <MemoToast />
       <ManualOverlay />
     </div>

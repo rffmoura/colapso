@@ -25,7 +25,12 @@ export const MEMOS: Record<string, Memo> = {
   observar: {
     id: 'observar',
     title: 'Poder: Observar',
-    text: 'Com 2 qubits, o botão roxo do seu crachá colapsa QUALQUER sujeito, uma vez por turno. Tire a dúvida do inimigo antes que ela vire um problema.',
+    text: 'Com 2 qubits, uma vez por turno, escolha o estado A ou B desejado para QUALQUER sujeito. Sua influência acerta em 75% dos casos; nos outros 25%, o estado oposto vence.',
+  },
+  contramedida: {
+    id: 'contramedida',
+    title: 'Contramedida disparada',
+    text: 'Cartas especiais entram armadas e funcionam uma vez por duelo. A sua é pública; a do Autômato fica confidencial até revelar o gatilho. Um efeito secreto nunca ativa outro.',
   },
   barreira: {
     id: 'barreira',

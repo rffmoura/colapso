@@ -2,6 +2,14 @@ import { useSyncExternalStore } from 'react'
 import { sfx, setMuted } from '../audio/sfx'
 import { decideAi } from '../engine/ai'
 import { getDef } from '../engine/cards'
+import {
+  acceptInitialSecret,
+  acceptRewardSecret,
+  buildMatchSetup,
+  createRun,
+  equipForNextDuel,
+  prepareReward,
+} from '../engine/run'
 import { loadSeenMemos, MEMOS, persistSeenMemos } from '../ui/didactics'
 import {
   canAttack,
@@ -12,7 +20,9 @@ import {
   endTurn,
   entangleCreatures,
   findCreature,
+  finishProtocol,
   grantTempKeywords,
+  influenceCreature,
   keywordsOf,
   newGame,
   payHeroPower,
@@ -22,7 +32,16 @@ import {
   startTurn,
   validAttackTargets,
 } from '../engine/game'
-import type { GameEvent, GameState, Owner, SpellKind, StepResult, TargetRef } from '../engine/types'
+import type {
+  GameEvent,
+  GameState,
+  Owner,
+  RunState,
+  SecretId,
+  SpellKind,
+  StepResult,
+  TargetRef,
+} from '../engine/types'
 import { HERO_POWER_COST } from '../engine/types'
 
 // ---------- tipos da UI ----------
@@ -44,12 +63,14 @@ export type Selection =
   | { type: 'attacker'; uid: number }
   | { type: 'spell'; handUid: number; spell: SpellKind; collected: TargetRef[] }
   | { type: 'polarizeFace'; handUid: number; targetUid: number }
+  | { type: 'influenceFace'; targetUid: number }
   | { type: 'heropower' }
   | null
 
 export interface StoreState {
   game: GameState
-  phase: 'title' | 'game' | 'over'
+  phase: 'title' | 'draft' | 'briefing' | 'game' | 'reward' | 'run-lost' | 'run-won'
+  run: RunState | null
   busy: boolean
   selection: Selection
   fx: FloatFx[]
@@ -66,6 +87,10 @@ export interface StoreState {
   drawFx: Array<{ id: number; owner: Owner; count: number }>
   /** sujeitos com Barreira tremendo para explicar um ataque negado */
   blockPulse: { id: number; uids: number[] } | null
+  /** cartas especiais reveladas, mantidas por tempo suficiente para a animação */
+  secretFx: Array<{ id: number; owner: Owner; secretId: SecretId }>
+  /** contramedida aberta para leitura detalhada */
+  secretInspector: { owner: Owner; secretId: SecretId; status: 'armed' | 'used' } | null
 }
 
 /** Registro de elementos DOM por alvo, para linhas de emaranhamento e investidas */
@@ -85,6 +110,7 @@ function wait(ms: number) {
 let state: StoreState = {
   game: newGame(),
   phase: 'title',
+  run: null,
   busy: false,
   selection: null,
   fx: [],
@@ -97,6 +123,8 @@ let state: StoreState = {
   shakeTick: 0,
   drawFx: [],
   blockPulse: null,
+  secretFx: [],
+  secretInspector: null,
 }
 
 const seenMemos = loadSeenMemos()
@@ -120,6 +148,19 @@ export function dismissAllMemos() {
 
 export function toggleManual() {
   set({ manualOpen: !state.manualOpen })
+}
+
+export function inspectSecret(owner: Owner, secretId: SecretId, status: 'armed' | 'used') {
+  const side = state.game.sides[owner]
+  const canInspectArmed = owner === 'player' && side.activeSecret?.id === secretId
+  const canInspectUsed = side.revealedSecrets.includes(secretId)
+  if ((status === 'armed' && !canInspectArmed) || (status === 'used' && !canInspectUsed)) return
+  sfx.select()
+  set({ secretInspector: { owner, secretId, status } })
+}
+
+export function closeSecretInspector() {
+  if (state.secretInspector) set({ secretInspector: null })
 }
 
 function shakeBoard() {
@@ -215,6 +256,24 @@ function apply(step: StepResult): GameEvent[] {
       case 'spell':
         sfx.spell()
         break
+      case 'influence':
+        pushFx(
+          `c-${e.uid}`,
+          e.success ? `${Math.round(e.chance * 100)}% confirmado` : `${Math.round((1 - e.chance) * 100)}% desviou`,
+          'info',
+        )
+        break
+      case 'secretTrigger': {
+        queueMemo('contramedida')
+        const item = { id: fxId++, owner: e.owner, secretId: e.id }
+        set({ secretFx: [...state.secretFx, item] })
+        setTimeout(() => set({ secretFx: state.secretFx.filter((secret) => secret.id !== item.id) }), 2400)
+        pushFx(`hero-${e.owner}`, 'contramedida!', 'info')
+        break
+      }
+      case 'secretArmed':
+        pushFx(`hero-${e.owner}`, 'reserva armada', 'info')
+        break
       default:
         break
     }
@@ -232,9 +291,23 @@ async function collapseWithDrama(uid: number, face?: 0 | 1) {
 async function checkEnd(): Promise<boolean> {
   if (state.game.winner && state.phase === 'game') {
     await wait(700)
-    if (state.game.winner === 'player') sfx.win()
-    else sfx.lose()
-    set({ phase: 'over', busy: false, selection: null, aiThinking: false })
+    if (state.game.winner === 'player') {
+      sfx.win()
+      if (state.run?.stage === 3) {
+        set({ phase: 'run-won', busy: false, selection: null, aiThinking: false })
+      } else if (state.run) {
+        set({
+          run: prepareReward(state.run),
+          phase: 'reward',
+          busy: false,
+          selection: null,
+          aiThinking: false,
+        })
+      }
+    } else {
+      sfx.lose()
+      set({ phase: 'run-lost', run: null, busy: false, selection: null, aiThinking: false })
+    }
     return true
   }
   return false
@@ -278,6 +351,7 @@ async function spellSeq(owner: Owner, handUid: number, spell: SpellKind, targets
   if (paid.state === state.game) return
   apply(paid)
   await wait(350)
+  if (state.game.winner) return
   switch (spell) {
     case 'medir':
       if (targets[0]?.kind === 'creature') await collapseWithDrama(targets[0].uid)
@@ -340,19 +414,80 @@ async function spellSeq(owner: Owner, handUid: number, spell: SpellKind, targets
       await wait(400)
       break
   }
+  if (!state.game.winner) {
+    const followup = finishProtocol(state.game, owner)
+    if (followup.events.length > 0) {
+      apply(followup)
+      await wait(500)
+    }
+  }
 }
 
 // ---------- ações do jogador ----------
 
 export function startGame() {
   sfx.select()
-  set({ game: newGame(), phase: 'game', selection: null, fx: [], busy: true, memoQueue: [] })
-  queueMemo('inicio')
-  void runStartTurn()
+  set({
+    run: createRun(),
+    phase: 'draft',
+    selection: null,
+    fx: [],
+    busy: false,
+    memoQueue: [],
+    secretFx: [],
+    secretInspector: null,
+  })
 }
 
 export function restart() {
   startGame()
+}
+
+function prepareMatch(run: RunState) {
+  const setup = buildMatchSetup(run)
+  set({
+    run,
+    game: newGame(setup),
+    phase: 'briefing',
+    selection: null,
+    fx: [],
+    busy: true,
+    memoQueue: [],
+    secretFx: [],
+    secretInspector: null,
+  })
+}
+
+export function beginDuel() {
+  if (state.phase !== 'briefing' || !state.run) return
+  sfx.select()
+  set({ phase: 'game', busy: true })
+  if (state.run.stage === 0) queueMemo('inicio')
+  void runStartTurn()
+}
+
+export function chooseInitialSecret(secret: SecretId) {
+  if (state.phase !== 'draft' || !state.run) return
+  const next = acceptInitialSecret(state.run, secret)
+  if (next === state.run) return
+  sfx.select()
+  prepareMatch(next)
+}
+
+export function chooseRewardSecret(secret: SecretId) {
+  if (state.phase !== 'reward' || !state.run || state.run.rewardStep !== 'draft') return
+  const next = acceptRewardSecret(state.run, secret)
+  if (next === state.run) return
+  sfx.select()
+  set({ run: next })
+}
+
+export function equipSecret(secret: SecretId) {
+  if (state.phase !== 'reward' || !state.run || state.run.rewardStep !== 'equip') return
+  const next = equipForNextDuel(state.run, secret)
+  if (next === state.run) return
+  sfx.select()
+  prepareMatch(next)
 }
 
 export function toggleMute() {
@@ -383,7 +518,10 @@ export function endPlayerTurn() {
   sfx.select()
   set({ busy: true, selection: null })
   apply(endTurn(state.game))
-  void runStartTurn()
+  void (async () => {
+    if (await checkEnd()) return
+    await runStartTurn()
+  })()
 }
 
 export function clickHandCard(handUid: number) {
@@ -404,6 +542,7 @@ export function clickHandCard(handUid: number) {
       queueMemo('superposicao')
       if (events.some((e) => e.t === 'collapse')) await wait(COLLAPSE_MS)
       set({ busy: false })
+      await checkEnd()
     })()
   } else {
     // feitiços sem alvo executam direto; com alvo entram em modo de mira
@@ -510,14 +649,8 @@ function clickTarget(target: TargetRef) {
 
   if (sel.type === 'heropower') {
     if (target.kind !== 'creature') return
-    set({ busy: true, selection: null })
-    void (async () => {
-      apply(payHeroPower(state.game, 'player', target.uid))
-      sfx.spell()
-      await collapseWithDrama(target.uid)
-      set({ busy: false })
-      await checkEnd()
-    })()
+    sfx.select()
+    set({ selection: { type: 'influenceFace', targetUid: target.uid } })
     return
   }
 
@@ -549,6 +682,25 @@ export function choosePolarizeFace(face: 0 | 1) {
   set({ busy: true, selection: null })
   void (async () => {
     await spellSeq('player', sel.handUid, 'polarizar', [{ kind: 'creature', uid: sel.targetUid }], face)
+    set({ busy: false })
+    await checkEnd()
+  })()
+}
+
+export function chooseInfluenceFace(face: 0 | 1) {
+  const sel = state.selection
+  if (sel?.type !== 'influenceFace') return
+  set({ busy: true, selection: null })
+  void (async () => {
+    const paid = payHeroPower(state.game, 'player', sel.targetUid)
+    if (paid.state === state.game) {
+      set({ busy: false })
+      return
+    }
+    apply(paid)
+    sfx.spell()
+    apply(influenceCreature(state.game, 'player', sel.targetUid, face))
+    await wait(COLLAPSE_MS)
     set({ busy: false })
     await checkEnd()
   })()
@@ -626,7 +778,8 @@ async function aiTurn() {
       case 'heropower':
         apply(payHeroPower(state.game, 'ai', action.targetUid))
         sfx.spell()
-        await collapseWithDrama(action.targetUid)
+        apply(influenceCreature(state.game, 'ai', action.targetUid, action.face))
+        await wait(COLLAPSE_MS)
         break
       case 'attack':
         await attackSeq(action.attackerUid, action.target)
@@ -636,11 +789,12 @@ async function aiTurn() {
   set({ aiThinking: false })
   if (await checkEnd()) return
   apply(endTurn(state.game))
+  if (await checkEnd()) return
   await runStartTurn()
 }
 
 // gancho de depuração, apenas em desenvolvimento
-if (import.meta.env.DEV) {
+if (import.meta.env.DEV && typeof window !== 'undefined') {
   ;(window as unknown as Record<string, unknown>).__colapso = {
     getState,
     smite: async (owner: Owner, amount: number) => {

@@ -1,5 +1,58 @@
 export type Owner = 'player' | 'ai'
 
+export type SecretId =
+  | 'observador-observado'
+  | 'efeito-zeno'
+  | 'retaliacao-q88'
+  | 'reacao-em-cadeia'
+  | 'protocolo-emergencia'
+  | 'copia-carbono'
+  | 'residuo-energia'
+
+export interface SecretDef {
+  id: SecretId
+  code: string
+  name: string
+  text: string
+  trigger: string
+}
+
+export type DirectiveId =
+  | 'blindagem-reforcada'
+  | 'nucleo-adiantado'
+  | 'arquivo-prioritario'
+  | 'calibracao-hostil'
+  | 'linha-de-montagem'
+
+export interface DirectiveDef {
+  id: DirectiveId
+  code: string
+  name: string
+  text: string
+}
+
+export interface ActiveSecret {
+  id: SecretId
+}
+
+export interface MatchSetup {
+  duel: 1 | 2 | 3 | 4
+  boss: boolean
+  playerSecret: SecretId
+  aiSecrets: SecretId[]
+  directives: DirectiveId[]
+}
+
+export interface RunState {
+  stage: 0 | 1 | 2 | 3
+  arsenal: SecretId[]
+  directives: DirectiveId[]
+  equippedSecret: SecretId | null
+  offeredSecrets: SecretId[]
+  pendingDirective: DirectiveId | null
+  rewardStep: 'draft' | 'equip'
+}
+
 export type Keyword = 'barreira' | 'veloz' | 'fantasma'
 
 export interface Face {
@@ -66,6 +119,12 @@ export interface SideState {
   discard: string[]
   hand: HandCard[]
   heroPowerUsed: boolean
+  activeSecret: ActiveSecret | null
+  queuedSecrets: SecretId[]
+  /** contramedidas já disparadas, públicas e consultáveis até o fim do duelo */
+  revealedSecrets: SecretId[]
+  cardsPlayedThisTurn: number
+  creaturesPlayedThisTurn: number
 }
 
 export interface GameState {
@@ -75,6 +134,7 @@ export interface GameState {
   board: Record<Owner, Creature[]>
   winner: Owner | null
   nextUid: number
+  setup: MatchSetup
 }
 
 /** Alvo de ataque ou de efeito */
@@ -93,6 +153,18 @@ export type GameEvent =
   | { t: 'echo'; from: number; to: number; amount: number }
   | { t: 'spell'; defId: string; owner: Owner }
   | { t: 'heropower'; owner: Owner; uid: number }
+  | {
+      t: 'influence'
+      observer: Owner
+      uid: number
+      preferred: 0 | 1
+      resolved: 0 | 1
+      success: boolean
+      chance: number
+    }
+  | { t: 'secretReveal'; owner: Owner; id: SecretId }
+  | { t: 'secretTrigger'; owner: Owner; id: SecretId }
+  | { t: 'secretArmed'; owner: Owner; id: SecretId }
   | { t: 'turn'; owner: Owner; turn: number }
   | { t: 'gameover'; winner: Owner }
 

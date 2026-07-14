@@ -4,6 +4,7 @@ import {
   canPlay,
   expectedAttack,
   expectedHealth,
+  influenceChance,
   keywordsOf,
   validAttackTargets,
 } from './game'
@@ -14,7 +15,7 @@ export type AiAction =
   | { kind: 'playCreature'; handUid: number }
   | { kind: 'spell'; handUid: number; spell: SpellKind; targets: TargetRef[]; face?: 0 | 1 }
   | { kind: 'attack'; attackerUid: number; target: TargetRef }
-  | { kind: 'heropower'; targetUid: number }
+  | { kind: 'heropower'; targetUid: number; face: 0 | 1 }
   | { kind: 'end' }
 
 /** Decide UMA próxima ação da IA; o orquestrador chama em loop até 'end'. */
@@ -121,11 +122,13 @@ export function decideAi(s: GameState): AiAction {
 
   // 9. Poder de herói: observar a superposição inimiga mais perigosa
   if (!me.heroPowerUsed && me.qubits >= HERO_POWER_COST) {
-    const scary = foeBoard
+    const candidates = foeBoard
       .filter((c) => c.collapsed === null)
-      .sort((a, b) => expectedAttack(b) - expectedAttack(a))[0]
-    if (scary && expectedAttack(scary) >= 2.5) {
-      return { kind: 'heropower', targetUid: scary.uid }
+      .map((c) => ({ c, ...bestInfluenceAgainst(s, c.defId) }))
+      .sort((a, b) => b.priority - a.priority)
+    const best = candidates[0]
+    if (best && best.priority >= 1.4) {
+      return { kind: 'heropower', targetUid: best.c.uid, face: best.face }
     }
   }
 
@@ -165,4 +168,27 @@ export function decideAi(s: GameState): AiAction {
 function bestFaceAttack(defId: string): number {
   const faces = getDef(defId).faces!
   return Math.max(faces[0].attack, faces[1].attack)
+}
+
+function faceTacticalValue(defId: string, face: 0 | 1): number {
+  const state = getDef(defId).faces![face]
+  const keywordValue = state.keywords.reduce((total, keyword) => {
+    if (keyword === 'barreira') return total + 1.8
+    if (keyword === 'veloz') return total + 1.4
+    return total + 1.2
+  }, 0)
+  return state.attack * 1.35 + state.health + keywordValue
+}
+
+export function bestInfluenceAgainst(s: GameState, defId: string): { face: 0 | 1; priority: number } {
+  const a = faceTacticalValue(defId, 0)
+  const b = faceTacticalValue(defId, 1)
+  const face: 0 | 1 = a <= b ? 0 : 1
+  const low = Math.min(a, b)
+  const high = Math.max(a, b)
+  const chance = influenceChance(s, 'ai')
+  const biasedExpected = low * chance + high * (1 - chance)
+  const randomExpected = (a + b) / 2
+  const disruption = randomExpected - biasedExpected
+  return { face, priority: disruption + randomExpected * 0.12 }
 }

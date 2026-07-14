@@ -1,11 +1,15 @@
 import { DECK_LIST, getDef } from './cards'
+import { defaultMatchSetup } from './run'
 import type {
+  CardDef,
   Creature,
   Face,
   GameEvent,
   GameState,
   Keyword,
+  MatchSetup,
   Owner,
+  SecretId,
   SideState,
   StepResult,
   TargetRef,
@@ -27,6 +31,10 @@ function shuffle<T>(arr: T[]): T[] {
 
 function clone(s: GameState): GameState {
   return structuredClone(s)
+}
+
+function hasDirective(s: GameState, id: GameState['setup']['directives'][number]): boolean {
+  return s.setup.directives.includes(id)
 }
 
 // ---------- consultas ----------
@@ -85,9 +93,18 @@ export function canPlay(s: GameState, owner: Owner, handUid: number): boolean {
   const card = side.hand.find((h) => h.uid === handUid)
   if (!card) return false
   const def = getDef(card.defId)
-  if (def.cost > side.qubits) return false
+  if (effectiveCardCost(s, owner, def) > side.qubits) return false
   if (def.type === 'criatura' && s.board[owner].length >= MAX_BOARD) return false
   return true
+}
+
+export function effectiveCardCost(s: GameState, owner: Owner, def: CardDef): number {
+  const assemblyDiscount =
+    owner === 'ai' &&
+    def.type === 'criatura' &&
+    hasDirective(s, 'linha-de-montagem') &&
+    s.sides.ai.creaturesPlayedThisTurn === 0
+  return Math.max(0, def.cost - (assemblyDiscount ? 1 : 0))
 }
 
 // ---------- mutações internas ----------
@@ -114,9 +131,36 @@ function drawInto(s: GameState, owner: Owner, n: number, ev: GameEvent[]) {
   if (drawn > 0) ev.push({ t: 'draw', owner, count: drawn })
 }
 
-function applyHeroDamage(s: GameState, owner: Owner, amount: number, ev: GameEvent[]) {
+function triggerSecret(s: GameState, owner: Owner, id: SecretId, ev: GameEvent[]): boolean {
+  const side = s.sides[owner]
+  if (side.activeSecret?.id !== id) return false
+  ev.push({ t: 'secretReveal', owner, id })
+  ev.push({ t: 'secretTrigger', owner, id })
+  side.revealedSecrets.push(id)
+  const next = side.queuedSecrets.shift()
+  side.activeSecret = next ? { id: next } : null
+  if (next) ev.push({ t: 'secretArmed', owner, id: next })
+  return true
+}
+
+type DamageSource = 'normal' | 'secret'
+
+function applyHeroDamage(
+  s: GameState,
+  owner: Owner,
+  amount: number,
+  ev: GameEvent[],
+  source: DamageSource = 'normal',
+) {
   if (s.winner) return
   const side = s.sides[owner]
+  const lethal = amount >= side.coherence
+  if (source === 'normal' && lethal && triggerSecret(s, owner, 'protocolo-emergencia', ev)) {
+    const dealt = Math.max(0, side.coherence - 1)
+    side.coherence = 1
+    if (dealt > 0) ev.push({ t: 'damage', target: { kind: 'hero', owner }, amount: dealt })
+    return
+  }
   side.coherence -= amount
   ev.push({ t: 'damage', target: { kind: 'hero', owner }, amount })
   if (side.coherence <= 0) {
@@ -126,12 +170,19 @@ function applyHeroDamage(s: GameState, owner: Owner, amount: number, ev: GameEve
   }
 }
 
-function doCollapse(s: GameState, uid: number, face: 0 | 1 | undefined, forced: boolean, ev: GameEvent[]) {
+function doCollapse(
+  s: GameState,
+  uid: number,
+  face: 0 | 1 | undefined,
+  forced: boolean,
+  ev: GameEvent[],
+  roll: number = Math.random(),
+) {
   const c = findCreature(s, uid)
   if (!c || c.collapsed !== null) return
   const def = getDef(c.defId)
   const bias = def.bias ?? 0.5
-  const resolved: 0 | 1 = face ?? (Math.random() < bias ? 0 : 1)
+  const resolved: 0 | 1 = face ?? (roll < bias ? 0 : 1)
   c.collapsed = resolved
   c.hp = def.faces![resolved].health
   ev.push({ t: 'collapse', uid, face: resolved, forced })
@@ -139,7 +190,7 @@ function doCollapse(s: GameState, uid: number, face: 0 | 1 | undefined, forced: 
   if (c.entangledWith !== null) {
     const partner = findCreature(s, c.entangledWith)
     if (partner && partner.collapsed === null) {
-      doCollapse(s, partner.uid, resolved, true, ev)
+      doCollapse(s, partner.uid, resolved, true, ev, roll)
     }
   }
 }
@@ -162,38 +213,74 @@ function killCreature(s: GameState, uid: number, ev: GameEvent[]) {
   }
 }
 
-function applyCreatureDamage(s: GameState, uid: number, amount: number, ev: GameEvent[]) {
+function applyCreatureDamage(
+  s: GameState,
+  uid: number,
+  amount: number,
+  ev: GameEvent[],
+  source: DamageSource = 'normal',
+) {
   const c = findCreature(s, uid)
   if (!c) return
   if (c.collapsed === null) doCollapse(s, uid, undefined, true, ev)
   c.hp -= amount
   ev.push({ t: 'damage', target: { kind: 'creature', uid }, amount })
-  if (c.hp <= 0) killCreature(s, uid, ev)
+  if (c.hp <= 0) {
+    if (source === 'normal' && triggerSecret(s, c.owner, 'efeito-zeno', ev)) {
+      c.hp = 1
+      return
+    }
+    killCreature(s, uid, ev)
+  }
+}
+
+function registerCardPlayed(s: GameState, owner: Owner, ev: GameEvent[]) {
+  const side = s.sides[owner]
+  side.cardsPlayedThisTurn += 1
+  if (side.cardsPlayedThisTurn !== 2) return
+  const defender = other(owner)
+  if (triggerSecret(s, defender, 'reacao-em-cadeia', ev)) {
+    applyHeroDamage(s, owner, 4, ev, 'secret')
+  }
 }
 
 // ---------- primitivas públicas (imutáveis) ----------
 
-export function newGame(): GameState {
-  const mkSide = (): SideState => ({
-    coherence: START_COHERENCE,
+export function newGame(setup: MatchSetup = defaultMatchSetup()): GameState {
+  const mkSide = (owner: Owner): SideState => ({
+    coherence:
+      owner === 'ai'
+        ? (setup.boss ? 30 : START_COHERENCE) + (setup.directives.includes('blindagem-reforcada') ? 4 : 0)
+        : START_COHERENCE,
     qubits: 0,
-    maxQubits: 0,
+    maxQubits: owner === 'ai' && setup.directives.includes('nucleo-adiantado') ? 1 : 0,
     deck: shuffle(DECK_LIST),
     discard: [],
     hand: [],
     heroPowerUsed: false,
+    activeSecret:
+      owner === 'player'
+        ? { id: setup.playerSecret }
+        : setup.aiSecrets[0]
+          ? { id: setup.aiSecrets[0] }
+          : null,
+    queuedSecrets: owner === 'ai' ? setup.aiSecrets.slice(1) : [],
+    revealedSecrets: [],
+    cardsPlayedThisTurn: 0,
+    creaturesPlayedThisTurn: 0,
   })
   const s: GameState = {
     turn: 0,
     active: 'player',
-    sides: { player: mkSide(), ai: mkSide() },
+    sides: { player: mkSide('player'), ai: mkSide('ai') },
     board: { player: [], ai: [] },
     winner: null,
     nextUid: 1,
+    setup: structuredClone(setup),
   }
   const ev: GameEvent[] = []
   drawInto(s, 'player', 4, ev)
-  drawInto(s, 'ai', 5, ev)
+  drawInto(s, 'ai', 5 + (setup.directives.includes('arquivo-prioritario') ? 1 : 0), ev)
   return s
 }
 
@@ -205,6 +292,8 @@ export function startTurn(prev: GameState): StepResult {
   side.maxQubits = Math.min(MAX_QUBITS, side.maxQubits + 1)
   side.qubits = side.maxQubits
   side.heroPowerUsed = false
+  side.cardsPlayedThisTurn = 0
+  side.creaturesPlayedThisTurn = 0
   for (const c of s.board[s.active]) c.attacksUsed = 0
   ev.push({ t: 'turn', owner: s.active, turn: s.turn })
   // refil: compra até HAND_REFILL cartas (sempre ao menos 1)
@@ -215,9 +304,16 @@ export function startTurn(prev: GameState): StepResult {
 
 export function endTurn(prev: GameState): StepResult {
   const s = clone(prev)
+  const ev: GameEvent[] = []
   for (const c of s.board[s.active]) c.tempKeywords = []
+  const ending = s.active
+  const defender = other(ending)
+  if (s.sides[ending].qubits >= 3 && triggerSecret(s, defender, 'residuo-energia', ev)) {
+    applyHeroDamage(s, ending, 4, ev, 'secret')
+  }
+  if (s.winner) return { state: s, events: ev }
   s.active = other(s.active)
-  return { state: s, events: [] }
+  return { state: s, events: ev }
 }
 
 export function playCreature(prev: GameState, owner: Owner, handUid: number): StepResult {
@@ -227,9 +323,15 @@ export function playCreature(prev: GameState, owner: Owner, handUid: number): St
   const idx = side.hand.findIndex((h) => h.uid === handUid)
   if (idx < 0) return { state: prev, events: [] }
   const def = getDef(side.hand[idx].defId)
-  if (def.cost > side.qubits || s.board[owner].length >= MAX_BOARD) return { state: prev, events: [] }
-  side.qubits -= def.cost
+  const cost = effectiveCardCost(s, owner, def)
+  if (cost > side.qubits || s.board[owner].length >= MAX_BOARD) return { state: prev, events: [] }
+  side.qubits -= cost
   side.hand.splice(idx, 1)
+  registerCardPlayed(s, owner, ev)
+  if (s.winner) {
+    side.discard.push(def.id)
+    return { state: s, events: ev }
+  }
   const creature: Creature = {
     uid: handUid,
     defId: def.id,
@@ -242,6 +344,7 @@ export function playCreature(prev: GameState, owner: Owner, handUid: number): St
     tempKeywords: [],
   }
   s.board[owner].push(creature)
+  side.creaturesPlayedThisTurn += 1
   ev.push({ t: 'summon', uid: creature.uid })
   if (def.onPlay === 'colapsarInimigo') {
     const targets = s.board[other(owner)].filter((c) => c.collapsed === null)
@@ -256,21 +359,61 @@ export function playCreature(prev: GameState, owner: Owner, handUid: number): St
 /** Paga o custo de um feitiço e o remove da mão; o efeito é aplicado pelas primitivas seguintes. */
 export function paySpell(prev: GameState, owner: Owner, handUid: number): StepResult {
   const s = clone(prev)
+  const ev: GameEvent[] = []
   const side = s.sides[owner]
   const idx = side.hand.findIndex((h) => h.uid === handUid)
   if (idx < 0) return { state: prev, events: [] }
   const def = getDef(side.hand[idx].defId)
-  if (def.cost > side.qubits) return { state: prev, events: [] }
-  side.qubits -= def.cost
+  const cost = effectiveCardCost(s, owner, def)
+  if (cost > side.qubits) return { state: prev, events: [] }
+  side.qubits -= cost
   side.hand.splice(idx, 1)
   side.discard.push(def.id)
-  return { state: s, events: [{ t: 'spell', defId: def.id, owner }] }
+  registerCardPlayed(s, owner, ev)
+  if (!s.winner) ev.push({ t: 'spell', defId: def.id, owner })
+  return { state: s, events: ev }
 }
 
-export function collapseCreature(prev: GameState, uid: number, face?: 0 | 1, forced = true): StepResult {
+export function collapseCreature(
+  prev: GameState,
+  uid: number,
+  face?: 0 | 1,
+  forced = true,
+  roll: number = Math.random(),
+): StepResult {
   const s = clone(prev)
   const ev: GameEvent[] = []
-  doCollapse(s, uid, face, forced, ev)
+  doCollapse(s, uid, face, forced, ev, roll)
+  return { state: s, events: ev }
+}
+
+export function influenceChance(s: GameState, observer: Owner): number {
+  return observer === 'ai' && hasDirective(s, 'calibracao-hostil') ? 0.85 : 0.75
+}
+
+export function influenceCreature(
+  prev: GameState,
+  observer: Owner,
+  uid: number,
+  preferred: 0 | 1,
+  roll: number = Math.random(),
+): StepResult {
+  const s = clone(prev)
+  const ev: GameEvent[] = []
+  const target = findCreature(s, uid)
+  if (!target || target.collapsed !== null) return { state: prev, events: [] }
+  const chance = influenceChance(s, observer)
+  const resolved: 0 | 1 = roll < chance ? preferred : preferred === 0 ? 1 : 0
+  const success = resolved === preferred
+  ev.push({ t: 'influence', observer, uid, preferred, resolved, success, chance })
+  doCollapse(s, uid, resolved, true, ev, roll)
+  if (
+    success &&
+    target.owner !== observer &&
+    triggerSecret(s, target.owner, 'observador-observado', ev)
+  ) {
+    applyHeroDamage(s, observer, 5, ev, 'secret')
+  }
   return { state: s, events: ev }
 }
 
@@ -300,6 +443,14 @@ export function damageTarget(prev: GameState, target: TargetRef, amount: number)
   return { state: s, events: ev }
 }
 
+export function finishProtocol(prev: GameState, owner: Owner): StepResult {
+  const s = clone(prev)
+  const ev: GameEvent[] = []
+  const defender = other(owner)
+  if (triggerSecret(s, defender, 'copia-carbono', ev)) drawInto(s, defender, 2, ev)
+  return { state: s, events: ev }
+}
+
 export function drawCards(prev: GameState, owner: Owner, n: number): StepResult {
   const s = clone(prev)
   const ev: GameEvent[] = []
@@ -320,6 +471,9 @@ export function resolveCombat(prev: GameState, attackerUid: number, target: Targ
   const atk = faceOf(attacker)!.attack
   if (target.kind === 'hero') {
     applyHeroDamage(s, target.owner, atk, ev)
+    if (!s.winner && triggerSecret(s, target.owner, 'retaliacao-q88', ev)) {
+      applyCreatureDamage(s, attacker.uid, 4, ev, 'secret')
+    }
   } else {
     const defender = findCreature(s, target.uid)
     if (!defender || defender.collapsed === null) return { state: prev, events: [] }

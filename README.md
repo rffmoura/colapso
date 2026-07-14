@@ -15,6 +15,7 @@ sintetizados em tempo real e visual de papel impresso dos anos 50.
 ```bash
 npm install
 npm run dev      # desenvolvimento (Vite, http://localhost:5173)
+npm test         # suíte determinística do motor
 npm run build    # build de produção em dist/
 ```
 
@@ -31,8 +32,19 @@ com ataque, vida e habilidades próprios:
   estados (50/50). Para sempre.
 - **Emaranhamento** — um barbante vermelho liga um sujeito seu a um inimigo: colapsam juntos
   (A com A, B com B) e, quando um morre, o outro sofre 2 de dano de eco.
-- **Observar** — poder de herói (2 qubits, 1x/turno): colapsa qualquer sujeito, na hora que for
-  melhor para você.
+- **Observar** — poder de herói (2 qubits, 1x/turno): escolha A ou B para qualquer sujeito. A
+  influência favorece sua escolha em 75/25; a IA pode chegar a 85/15 por Diretriz.
+
+## Plantão contínuo
+
+Cada tentativa possui três setores e o **Autômato Supervisor** como chefe. Você começa escolhendo
+uma de três Contramedidas, cartas especiais que entram armadas gratuitamente e disparam uma vez
+por duelo. A carta inimiga permanece confidencial até o gatilho.
+
+Após cada vitória regular, uma Diretriz cumulativa fortalece a IA e uma nova Contramedida é
+adicionada ao seu arsenal. Apenas uma pode ser equipada por duelo. O chefe começa com 30 de
+Coerência e duas Contramedidas diferentes, armadas em sequência. Uma derrota reinicia todo o
+Plantão; nenhuma progressão é gravada.
 
 ## Regras em 30 segundos
 
@@ -78,13 +90,15 @@ Decaimento, Decoerência e Requisição.
 
 ## Stack e arquitetura
 
-**Vite · React 19 · TypeScript · Motion** — e mais nada.
+**Vite · React 19 · TypeScript · Motion · Vitest**
 
 ```
 src/
 ├── engine/          # regras puras, sem UI
 │   ├── types.ts     # tipos e constantes do jogo
 │   ├── cards.ts     # as 16 fichas do arquivo
+│   ├── secrets.ts   # Contramedidas e Diretrizes
+│   ├── run.ts       # draft, arsenal e sequência de quatro duelos
 │   ├── game.ts      # primitivas imutáveis (colapso, combate, compra...)
 │   └── ai.ts        # heurísticas do Autômato
 ├── state/

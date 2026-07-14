@@ -1,8 +1,9 @@
 import { useCallback, useMemo } from 'react'
 import type { Owner } from '../engine/types'
 import { HERO_POWER_COST } from '../engine/types'
-import { clickHero, clickHeroPower, refRegistry, useStore, validTargetKeys } from '../state/store'
+import { clickHero, clickHeroPower, inspectSecret, refRegistry, useStore, validTargetKeys } from '../state/store'
 import { FloatFxList } from './FloatFxList'
+import { SecretCard } from './SecretCard'
 
 function ObserverFace() {
   return (
@@ -55,8 +56,10 @@ export function HeroPanel({ owner }: { owner: Owner }) {
   const isValidTarget = validKeys.has(key)
 
   const isPlayer = owner === 'player'
+  const aiName = st.game.setup.boss ? 'Autômato Supervisor' : 'O Autômato'
   const powerReady = isPlayer && !side.heroPowerUsed && side.qubits >= HERO_POWER_COST
   const powerArmed = st.selection?.type === 'heropower'
+  const lastRevealedSecret = side.revealedSecrets.at(-1)
   // no painel do topo (Autômato), tooltips abrem para baixo para não sair da tela
   const tipDown = isPlayer ? '' : ' tip-down'
 
@@ -65,7 +68,7 @@ export function HeroPanel({ owner }: { owner: Owner }) {
       ref={registerRef}
       className={`hero-panel ${isPlayer ? 'mine' : 'theirs'}${isValidTarget ? ' valid-target' : ''}`}
       role={isValidTarget ? 'button' : undefined}
-      aria-label={`${isPlayer ? 'Você, Observador' : 'O Autômato'}, ${side.coherence} de coerência`}
+      aria-label={`${isPlayer ? 'Você, Observador' : aiName}, ${side.coherence} de coerência`}
       tabIndex={isValidTarget ? 0 : -1}
       onClick={(e) => {
         e.stopPropagation()
@@ -80,10 +83,10 @@ export function HeroPanel({ owner }: { owner: Owner }) {
     >
       <div className="hero-identity">
         <div className="hero-avatar">{isPlayer ? <ObserverFace /> : <AutomatonFace />}</div>
-        <span className="hero-code">{isPlayer ? 'OBS-01' : 'AUT-25'}</span>
+        <span className="hero-code">{isPlayer ? 'OBS-01' : st.game.setup.boss ? 'AUT-Ω' : 'AUT-25'}</span>
       </div>
       <div className="hero-vitals">
-        <div className="hero-name">{isPlayer ? 'Você · Observador' : 'O Autômato'}</div>
+        <div className="hero-name">{isPlayer ? 'Você · Observador' : aiName}</div>
         <div
           className={`hero-readout${side.coherence <= 8 ? ' low' : ''}${tipDown}`}
           data-tip={
@@ -123,7 +126,7 @@ export function HeroPanel({ owner }: { owner: Owner }) {
           className={`btn-heropower${powerArmed ? ' armed' : ''}`}
           disabled={!powerReady || st.busy || st.game.active !== 'player'}
           aria-label={`Observar por ${HERO_POWER_COST} qubits`}
-          data-tip={`Observar (${HERO_POWER_COST} qubits, 1x por turno): colapsa qualquer sujeito.`}
+          data-tip={`Observar (${HERO_POWER_COST} qubits, 1x por turno): escolha A ou B com 75% de influência.`}
           onClick={(e) => {
             e.stopPropagation()
             clickHeroPower()
@@ -133,6 +136,51 @@ export function HeroPanel({ owner }: { owner: Owner }) {
           <small>observar</small>
         </button>
       )}
+      <div
+        className={`hero-secret-slot${side.activeSecret ? ' armed' : lastRevealedSecret ? ' revealed' : ' empty'}${tipDown}`}
+        data-tip={
+          side.activeSecret
+            ? isPlayer
+              ? 'Sua contramedida está armada. Clique para consultar o efeito.'
+              : `Contramedida inimiga confidencial${side.queuedSecrets.length > 0 ? '; há uma reserva para depois do disparo.' : '.'}`
+            : lastRevealedSecret
+              ? 'Contramedida já utilizada. Clique para reler o efeito.'
+              : 'Nenhuma contramedida registrada neste duelo.'
+        }
+      >
+        {side.activeSecret ? (
+          <SecretCard
+            id={isPlayer ? side.activeSecret.id : undefined}
+            hidden={!isPlayer}
+            compact
+            reserve={isPlayer ? 0 : side.queuedSecrets.length}
+            onClick={isPlayer ? () => inspectSecret(owner, side.activeSecret!.id, 'armed') : undefined}
+            ariaLabel={isPlayer ? 'Consultar sua contramedida armada' : undefined}
+          />
+        ) : lastRevealedSecret ? (
+          <SecretCard
+            id={lastRevealedSecret}
+            compact
+            used
+            onClick={() => inspectSecret(owner, lastRevealedSecret, 'used')}
+            ariaLabel="Consultar contramedida utilizada"
+          />
+        ) : (
+          <span className="secret-spent-mark">sem registro</span>
+        )}
+        {side.activeSecret && lastRevealedSecret && (
+          <button
+            className="secret-history-tab"
+            onClick={(event) => {
+              event.stopPropagation()
+              inspectSecret(owner, lastRevealedSecret, 'used')
+            }}
+            aria-label="Consultar última contramedida revelada"
+          >
+            {side.revealedSecrets.length} revelada{side.revealedSecrets.length > 1 ? 's' : ''}
+          </button>
+        )}
+      </div>
       <FloatFxList fxKey={key} />
     </div>
   )
