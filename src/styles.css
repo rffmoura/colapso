@@ -424,7 +424,7 @@ button { font-family: inherit; color: inherit; background: none; border: none; c
 }
 
 .card.size-hand { width: 12.4rem; height: 17.2rem; }
-.card.size-board { width: 10.6rem; height: 13rem; }
+.card.size-board { width: 11rem; height: 15rem; }
 
 /* cabeçalho: nome nunca coberto */
 
