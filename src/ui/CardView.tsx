@@ -61,7 +61,10 @@ export function CardView({ defId, collapsed = null, hp, size, tempKeywords = [],
       <div className="card-window">
         <CharacterArt defId={defId} />
         {isCreature && !showSuperposed && collapsed !== null && hp !== undefined && (
-          <div className={`hp-now${hp < def.faces![collapsed].health ? ' hurt' : ''}`}>{hp}</div>
+          <div className="hp-now">
+            <span>{hp}</span>
+            <small>vida</small>
+          </div>
         )}
       </div>
 

@@ -245,10 +245,11 @@ export function ManualOverlay() {
 
         <h3><span className="dot" style={{ background: 'var(--ink)' }} />Combate</h3>
         <p>
-          Cada estado tem ATAQUE (vermelho) e VIDA (azul). Combate entre sujeitos é uma troca
-          simultânea: cada um causa seu ataque na vida do outro, e o dano acumula entre turnos;
-          morre quem chegar a zero (às vezes, os dois). Atacar o Observador inimigo não gera revide.
-          Sujeito inimigo vivo ataca todo turno: às vezes vale mais removê-lo do que ir na cara.
+          Cada estado tem ATAQUE (vermelho) e VIDA (azul). Após o colapso, o selo azul VIDA sobre a
+          arte mostra a vida ATUAL do sujeito. Combate entre sujeitos é uma troca simultânea: cada
+          um causa seu ataque na vida do outro, e o dano acumula entre turnos; morre quem chegar a
+          zero (às vezes, os dois). Atacar o Observador inimigo não gera revide. Sujeito inimigo
+          vivo ataca todo turno: às vezes vale mais removê-lo do que ir na cara.
         </p>
 
         <h3><span className="dot" style={{ background: 'linear-gradient(90deg, var(--particle) 50%, var(--wave) 50%)' }} />Superposição</h3>
