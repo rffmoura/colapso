@@ -372,9 +372,10 @@ export function ManualOverlay() {
                   <h4>Use sua energia</h4>
                   <p>
                     <strong>Qubits são sua energia.</strong> Você os gasta para jogar as fichas da sua
-                    mão; o número no canto mostra o custo. No início de cada turno, seu máximo de
-                    Qubits aumenta em 1 (até 8) e a energia recarrega. Seu <strong>Arquivo</strong> é o
-                    monte de compra: dele você compra até ficar com 5 fichas na mão, sempre ao menos 1.
+                    mão; o número no canto mostra o custo. Você começa o primeiro turno com 2
+                    Qubits. Depois, a cada novo turno seu, o máximo aumenta em 1 (até 8) e a energia
+                    recarrega. Seu <strong>Arquivo</strong> é o monte de compra: dele você compra até
+                    ficar com 5 fichas na mão, sempre ao menos 1.
                     Se ele esvaziar, o monte de descarte é embaralhado e vira um novo Arquivo.
                   </p>
                 </div>

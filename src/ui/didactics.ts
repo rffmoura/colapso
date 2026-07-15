@@ -10,7 +10,7 @@ export const MEMOS: Record<string, Memo> = {
   inicio: {
     id: 'inicio',
     title: 'Bem-vindo ao plantão',
-    text: 'Sua missão: zerar a Coerência do Autômato antes que ele zere a sua. Jogue fichas pagando Qubits (as bolinhas amarelas do seu crachá). Clique numa ficha da mão para jogá-la.',
+    text: 'Sua missão: zerar a Coerência do Autômato antes que ele zere a sua. Você começa com 2 Qubits, a energia indicada pelas bolinhas amarelas do crachá. Clique numa ficha da mão para jogá-la.',
   },
   superposicao: {
     id: 'superposicao',

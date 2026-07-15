@@ -1,6 +1,6 @@
 import { useCallback, useMemo } from 'react'
 import type { Owner } from '../engine/types'
-import { HERO_POWER_COST } from '../engine/types'
+import { HERO_POWER_COST, STARTING_QUBITS } from '../engine/types'
 import { clickHero, clickHeroPower, inspectSecret, refRegistry, useStore, validTargetKeys } from '../state/store'
 import { FloatFxList } from './FloatFxList'
 import { SecretCard } from './SecretCard'
@@ -57,6 +57,9 @@ export function HeroPanel({ owner }: { owner: Owner }) {
 
   const isPlayer = owner === 'player'
   const aiName = st.game.setup.boss ? 'Autômato Supervisor' : 'O Autômato'
+  const openingQubits =
+    STARTING_QUBITS +
+    (!isPlayer && st.game.setup.directives.includes('nucleo-adiantado') ? 1 : 0)
   const powerReady = isPlayer && !side.heroPowerUsed && side.qubits >= HERO_POWER_COST
   const powerArmed = st.selection?.type === 'heropower'
   const lastRevealedSecret = side.revealedSecrets.at(-1)
@@ -103,7 +106,7 @@ export function HeroPanel({ owner }: { owner: Owner }) {
         </div>
         <div
           className={`qubit-meter${tipDown}`}
-          data-tip={`Qubits: energia do turno (${side.qubits}/${side.maxQubits}). Cresce 1 por turno.`}
+          data-tip={`Qubits: energia do turno (${side.qubits}/${side.maxQubits}). Primeiro turno: ${openingQubits}; depois, o máximo cresce 1 por turno.`}
         >
           <div className="qubit-meter-head">
             <span>qubits</span>

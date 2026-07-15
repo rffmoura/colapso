@@ -53,7 +53,7 @@ Plantão; nenhuma progressão é gravada.
 | Conceito | Regra |
 |---|---|
 | Objetivo | Zerar a **Coerência** do Autômato: 25 nos setores e 30 no Supervisor, antes de Diretrizes |
-| Energia | **Qubits**: +1 de máximo por turno (até 8), recarregam todo turno |
+| Energia | **Qubits**: começam em 2, depois ganham +1 de máximo por turno (até 8) |
 | Compra | **Refil**: no início do turno, compre até ter 5 fichas (mínimo 1) |
 | Arquivo | Deck de 20; quando esvazia, o **descarte volta embaralhado** — nunca há turno morto |
 | Campo | Até 6 sujeitos por lado; cada um ataca 1x por turno |

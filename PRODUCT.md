@@ -61,7 +61,8 @@ Essa promessa se apoia em três níveis de controle:
 5. Reduza a Coerência adversária a zero antes que a sua seja zerada.
 
 O combate é persistente: Sujeitos sobreviventes mantêm o dano. O Arquivo reembaralha o descarte
-quando esvazia, e o refil garante pelo menos uma compra por turno para evitar turnos mortos.
+quando esvazia, e o refil garante pelo menos uma compra por turno para evitar turnos mortos. A
+curva de energia começa em 2 Qubits e cresce até 8, permitindo uma decisão útil desde a abertura.
 
 ## Plantão contínuo
 

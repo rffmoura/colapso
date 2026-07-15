@@ -15,6 +15,7 @@ import {
   validAttackTargets,
 } from './game'
 import type { Creature, MatchSetup, Owner, SecretId } from './types'
+import { STARTING_QUBITS } from './types'
 
 function setup(
   playerSecret: SecretId = 'copia-carbono',
@@ -274,22 +275,41 @@ describe('regressões e Diretrizes', () => {
       ], true),
     )
     expect(base.sides.ai.coherence).toBe(34)
-    expect(base.sides.ai.maxQubits).toBe(1)
     expect(base.sides.ai.hand).toHaveLength(6)
 
+    base.active = 'ai'
+    const firstAiTurn = startTurn(base)
+    expect(firstAiTurn.state.sides.ai.maxQubits).toBe(STARTING_QUBITS + 1)
+    expect(firstAiTurn.state.sides.ai.qubits).toBe(STARTING_QUBITS + 1)
+
     const uid = 930
-    givePlayable(base, 'ai', 'foton', uid)
-    base.sides.ai.qubits = 0
-    const played = playCreature(base, 'ai', uid)
+    givePlayable(firstAiTurn.state, 'ai', 'foton', uid)
+    firstAiTurn.state.sides.ai.qubits = 0
+    const played = playCreature(firstAiTurn.state, 'ai', uid)
     expect(played.state.board.ai.some((item) => item.uid === uid)).toBe(true)
   })
 
-  it('refila a mão, recarrega qubits e encerra ao zerar Coerência', () => {
+  it('inicia os dois lados com 2 Qubits e cresce normalmente nos turnos seguintes', () => {
+    const base = newGame(setup())
+    const playerTurn = startTurn(base)
+    expect(playerTurn.state.sides.player.maxQubits).toBe(STARTING_QUBITS)
+    expect(playerTurn.state.sides.player.qubits).toBe(STARTING_QUBITS)
+
+    const aiTurn = startTurn(endTurn(playerTurn.state).state)
+    expect(aiTurn.state.sides.ai.maxQubits).toBe(STARTING_QUBITS)
+    expect(aiTurn.state.sides.ai.qubits).toBe(STARTING_QUBITS)
+
+    const nextPlayerTurn = startTurn(endTurn(aiTurn.state).state)
+    expect(nextPlayerTurn.state.sides.player.maxQubits).toBe(STARTING_QUBITS + 1)
+    expect(nextPlayerTurn.state.sides.player.qubits).toBe(STARTING_QUBITS + 1)
+  })
+
+  it('refila a mão, recarrega os Qubits e encerra ao zerar Coerência', () => {
     const base = newGame(setup())
     base.sides.player.hand = base.sides.player.hand.slice(0, 2)
     const started = startTurn(base)
     expect(started.state.sides.player.hand).toHaveLength(5)
-    expect(started.state.sides.player.qubits).toBe(1)
+    expect(started.state.sides.player.qubits).toBe(STARTING_QUBITS)
     const ended = damageTarget(started.state, { kind: 'hero', owner: 'ai' }, 99)
     expect(ended.state.winner).toBe('player')
     expect(ended.events.at(-1)).toEqual({ t: 'gameover', winner: 'player' })

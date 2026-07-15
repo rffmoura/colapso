@@ -24,6 +24,7 @@ Não existe progressão permanente da sequência.
 - Cada lado usa uma cópia embaralhada do mesmo Arquivo de 20 fichas.
 - O jogador recebe 4 fichas antes do primeiro turno; o Autômato recebe 5.
 - O jogador age primeiro e compra até ficar com 5 fichas ao iniciar seu turno.
+- Cada lado recebe 2 Qubits no primeiro turno. Com Núcleo Adiantado, o Autômato recebe 3.
 - Cada lado começa com uma Contramedida ativa. A do jogador fica visível; a do Autômato fica sob
   sigilo até disparar.
 - O Supervisor possui duas Contramedidas diferentes. A segunda fica em reserva e só é armada
@@ -32,7 +33,7 @@ Não existe progressão permanente da sequência.
 
 ## 3. Turno, energia e compra
 
-No início do turno do lado ativo:
+No primeiro turno de cada lado, seu máximo é 2 Qubits. Nos turnos seguintes:
 
 1. Seu máximo de **Qubits** aumenta em 1, até o limite de 8.
 2. Seus Qubits são recarregados até o máximo atual.
@@ -147,7 +148,7 @@ Diretrizes são cumulativas, sorteadas sem repetição e permanecem até o fim d
 | Diretriz | Efeito |
 |---|---|
 | **Blindagem Reforçada** | +4 de Coerência inicial para o Autômato em cada duelo restante. |
-| **Núcleo Adiantado** | O Autômato começa com +1 Qubit máximo. |
+| **Núcleo Adiantado** | O Autômato começa o primeiro turno com 3 Qubits em vez de 2. |
 | **Arquivo Prioritário** | O Autômato recebe +1 ficha antes de seu primeiro turno. |
 | **Calibração Hostil** | Observar do Autômato passa de 75/25 para 85/15. |
 | **Linha de Montagem** | O primeiro Sujeito jogado pelo Autômato a cada turno custa 1 Qubit a menos, mínimo zero. |

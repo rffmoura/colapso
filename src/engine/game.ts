@@ -14,7 +14,15 @@ import type {
   StepResult,
   TargetRef,
 } from './types'
-import { HAND_REFILL, HERO_POWER_COST, MAX_BOARD, MAX_HAND, MAX_QUBITS, START_COHERENCE } from './types'
+import {
+  HAND_REFILL,
+  HERO_POWER_COST,
+  MAX_BOARD,
+  MAX_HAND,
+  MAX_QUBITS,
+  START_COHERENCE,
+  STARTING_QUBITS,
+} from './types'
 
 export function other(o: Owner): Owner {
   return o === 'player' ? 'ai' : 'player'
@@ -255,7 +263,10 @@ export function newGame(setup: MatchSetup = defaultMatchSetup()): GameState {
         ? (setup.boss ? 30 : START_COHERENCE) + (setup.directives.includes('blindagem-reforcada') ? 4 : 0)
         : START_COHERENCE,
     qubits: 0,
-    maxQubits: owner === 'ai' && setup.directives.includes('nucleo-adiantado') ? 1 : 0,
+    // startTurn acrescenta o último Qubit ao abrir o primeiro turno.
+    maxQubits:
+      STARTING_QUBITS - 1 +
+      (owner === 'ai' && setup.directives.includes('nucleo-adiantado') ? 1 : 0),
     deck: shuffle(DECK_LIST),
     discard: [],
     hand: [],

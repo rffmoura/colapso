@@ -178,6 +178,8 @@ export interface StepResult {
 export const MAX_BOARD = 6
 export const MAX_HAND = 8
 export const MAX_QUBITS = 8
+/** energia disponível no primeiro turno de cada lado */
+export const STARTING_QUBITS = 2
 export const START_COHERENCE = 25
 export const HERO_POWER_COST = 2
 /** no início do turno, compra até ter esta quantidade de cartas (mínimo 1 compra) */
