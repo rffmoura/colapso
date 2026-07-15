@@ -339,7 +339,46 @@ button { font-family: inherit; color: inherit; background: none; border: none; c
   color: oklch(0.25 0.02 60 / 0.36);
 }
 
-.btn-hand-toggle { display: none; }
+.btn-hand-toggle {
+  position: absolute;
+  z-index: 32;
+  top: -3.05rem;
+  left: 0.65rem;
+  display: none;
+  min-height: 2.8rem;
+  align-items: center;
+  gap: 0.48rem;
+  padding: 0.42rem 0.78rem 0.36rem;
+  background: var(--paper-card);
+  border: 2px solid var(--ink);
+  border-radius: 3px;
+  box-shadow: 3px 4px 0 var(--ink-faint);
+  font-family: var(--font-type);
+  font-size: 0.62rem;
+  letter-spacing: 0.08em;
+  line-height: 1;
+  text-transform: uppercase;
+  rotate: -1deg;
+}
+
+.touch-controls .btn-hand-toggle { display: inline-flex; }
+
+.hand-toggle-chevron {
+  width: 0.68rem;
+  height: 0.68rem;
+  border-right: 2px solid currentColor;
+  border-bottom: 2px solid currentColor;
+  rotate: 45deg;
+  translate: 0 -0.12rem;
+  transition: rotate 0.2s var(--ease-out), translate 0.2s var(--ease-out);
+}
+
+.touch-controls.hand-lowered {
+  grid-template-rows: minmax(4.9rem, auto) minmax(0, 1fr) minmax(6.25rem, 7.25rem);
+}
+
+.touch-controls.hand-lowered .row-bottom::before { content: 'BANDEJA RECOLHIDA'; }
+.touch-controls.hand-lowered .hand-toggle-chevron { rotate: 225deg; translate: 0 0.12rem; }
 
 .ai-thinking {
   flex: 0 1 auto;
@@ -1211,6 +1250,83 @@ button { font-family: inherit; color: inherit; background: none; border: none; c
 }
 
 .hand-play-confirm { display: none; }
+
+/* Interação por toque independe da resolução: vale também para tablets de viewport ampla. */
+.touch-controls .hand { transition: transform 0.22s var(--ease-out), opacity 0.16s ease-out; }
+
+.touch-controls.hand-lowered .hand {
+  opacity: 0;
+  transform: translateY(18rem);
+  pointer-events: none;
+}
+
+.touch-controls .hand.is-previewing .hand-card:not(.previewed) {
+  opacity: 0.4;
+  transform: translateY(0.85rem);
+}
+
+.touch-controls .hand-card.previewed {
+  z-index: 48 !important;
+  opacity: 1;
+}
+
+.touch-controls .hand-card.previewed .hand-card-inner,
+.touch-controls .hand-card.previewed:hover .hand-card-inner,
+.touch-controls .hand-card.previewed:focus-within .hand-card-inner {
+  transform:
+    translate(var(--preview-x-mobile, 0px), calc(var(--fan-y, 0px) - 5.25rem))
+    scale(1.13)
+    rotate(0deg);
+}
+
+.touch-controls .hand-card.previewed.unplayable .card {
+  filter: saturate(0.82) brightness(0.99);
+}
+
+.touch-controls .hand-card.previewed .hand-play-confirm {
+  position: absolute;
+  top: calc(100% + 0.42rem);
+  left: 50%;
+  z-index: 4;
+  display: flex;
+  width: 13.2rem;
+  min-height: 3rem;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.7rem;
+  padding: 0.42rem 0.48rem 0.38rem 0.82rem;
+  transform: translateX(-50%) rotate(-1deg);
+  background: var(--paper-card);
+  border: 2px solid var(--ink);
+  border-radius: 3px;
+  box-shadow: 3px 4px 0 var(--approve);
+  font-family: var(--font-display);
+  font-size: 0.68rem;
+  letter-spacing: 0.06em;
+  line-height: 1;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
+.touch-controls .hand-play-confirm b {
+  display: grid;
+  width: 1.9rem;
+  height: 1.9rem;
+  flex: none;
+  place-items: center;
+  border: 1.7px solid var(--ink);
+  border-radius: 50%;
+  background: var(--energy);
+  font-size: 0.64rem;
+}
+
+.touch-controls .hand-play-confirm:disabled {
+  color: var(--ink-soft);
+  box-shadow: 3px 4px 0 var(--ink-faint);
+  cursor: not-allowed;
+}
+
+.touch-controls .hand-play-confirm:disabled b { background: var(--paper-dim); }
 
 @keyframes hand-enter {
   from {
@@ -3172,7 +3288,7 @@ button.secret-card { cursor: pointer; }
   .hand-lowered .row-bottom::before { content: 'BANDEJA RECOLHIDA'; }
   .ai-thinking { font-size: 0.58rem; }
 
-  .btn-hand-toggle {
+  .touch-controls .btn-hand-toggle {
     position: absolute;
     z-index: 32;
     top: -2.15rem;
@@ -3236,7 +3352,7 @@ button.secret-card { cursor: pointer; }
     padding: 0.25rem 0 0.38rem;
     transition: transform 0.22s var(--ease-out), opacity 0.16s ease-out;
   }
-  .hand-lowered .hand { opacity: 0; transform: translateY(8rem); pointer-events: none; }
+  .touch-controls.hand-lowered .hand { opacity: 0; transform: translateY(8rem); pointer-events: none; }
   .card.size-hand { width: 7.65rem; height: 10.55rem; border-width: 1.8px; border-radius: 7px; }
   .size-hand .card-head { min-height: 1.68rem; padding: 0.24rem 1.78rem 0.18rem 0.34rem; border-radius: 5px 5px 0 0; }
   .size-hand .card-name { font-size: 0.6rem; }
@@ -3260,30 +3376,30 @@ button.secret-card { cursor: pointer; }
     transform: translateY(calc(var(--fan-y-mobile, 0px) - 1rem)) scale(1.03) rotate(0deg);
   }
 
-  .hand.is-previewing .hand-card:not(.previewed) {
+  .touch-controls .hand.is-previewing .hand-card:not(.previewed) {
     opacity: 0.42;
     transform: translateY(0.65rem);
   }
 
-  .hand-card.previewed {
+  .touch-controls .hand-card.previewed {
     z-index: 48 !important;
     opacity: 1;
   }
 
-  .hand-card.previewed .hand-card-inner,
-  .hand-card.previewed:hover .hand-card-inner,
-  .hand-card.previewed:focus-within .hand-card-inner {
+  .touch-controls .hand-card.previewed .hand-card-inner,
+  .touch-controls .hand-card.previewed:hover .hand-card-inner,
+  .touch-controls .hand-card.previewed:focus-within .hand-card-inner {
     transform:
       translate(var(--preview-x-mobile, 0px), calc(var(--fan-y-mobile, 0px) - 3.65rem))
       scale(1.22)
       rotate(0deg);
   }
 
-  .hand-card.previewed.unplayable .card {
+  .touch-controls .hand-card.previewed.unplayable .card {
     filter: saturate(0.82) brightness(0.99);
   }
 
-  .hand-card.previewed .hand-play-confirm {
+  .touch-controls .hand-card.previewed .hand-play-confirm {
     position: absolute;
     top: calc(100% + 0.3rem);
     left: 50%;
@@ -3308,7 +3424,7 @@ button.secret-card { cursor: pointer; }
     white-space: nowrap;
   }
 
-  .hand-play-confirm b {
+  .touch-controls .hand-play-confirm b {
     display: grid;
     width: 1.45rem;
     height: 1.45rem;
@@ -3320,13 +3436,13 @@ button.secret-card { cursor: pointer; }
     font-size: 0.52rem;
   }
 
-  .hand-play-confirm:disabled {
+  .touch-controls .hand-play-confirm:disabled {
     color: var(--ink-soft);
     box-shadow: 2px 3px 0 var(--ink-faint);
     cursor: not-allowed;
   }
 
-  .hand-play-confirm:disabled b { background: var(--paper-dim); }
+  .touch-controls .hand-play-confirm:disabled b { background: var(--paper-dim); }
 
   /* Crachás em uma única linha: nada mais cai para baixo e é cortado pelo viewport. */
   .hero-panel {

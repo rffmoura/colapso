@@ -1,40 +1,22 @@
 import { AnimatePresence, motion } from 'motion/react'
-import { useCallback, useEffect, useState } from 'react'
+import { useCallback, useEffect } from 'react'
 import type { CSSProperties } from 'react'
 import { getDef } from '../engine/cards'
 import { canPlay } from '../engine/game'
 import { clickHandCard, refRegistry, useStore } from '../state/store'
 import { CardView } from './CardView'
 
-const MOBILE_HAND_CONFIRMATION = '(orientation: landscape) and (max-width: 1024px) and (max-height: 560px)'
-
-function useMobileHandConfirmation() {
-  const [matches, setMatches] = useState(() =>
-    typeof window !== 'undefined' ? window.matchMedia(MOBILE_HAND_CONFIRMATION).matches : false,
-  )
-
-  useEffect(() => {
-    const media = window.matchMedia(MOBILE_HAND_CONFIRMATION)
-    const update = () => setMatches(media.matches)
-    update()
-    media.addEventListener('change', update)
-    return () => media.removeEventListener('change', update)
-  }, [])
-
-  return matches
-}
-
 type PlayerHandProps = {
   hidden?: boolean
+  touchControls: boolean
   previewedUid: number | null
   onPreviewChange: (uid: number | null) => void
 }
 
-export function PlayerHand({ hidden = false, previewedUid, onPreviewChange }: PlayerHandProps) {
+export function PlayerHand({ hidden = false, touchControls, previewedUid, onPreviewChange }: PlayerHandProps) {
   const st = useStore()
   const hand = st.game.sides.player.hand
   const myTurn = st.game.active === 'player' && !st.busy && st.phase === 'game'
-  const mobileConfirmation = useMobileHandConfirmation()
   const n = hand.length
   const registerRef = useCallback((el: HTMLDivElement | null) => {
     if (el) refRegistry.set('hand-player', el)
@@ -42,8 +24,8 @@ export function PlayerHand({ hidden = false, previewedUid, onPreviewChange }: Pl
   }, [])
 
   useEffect(() => {
-    if ((!mobileConfirmation || hidden) && previewedUid !== null) onPreviewChange(null)
-  }, [hidden, mobileConfirmation, onPreviewChange, previewedUid])
+    if ((!touchControls || hidden) && previewedUid !== null) onPreviewChange(null)
+  }, [hidden, onPreviewChange, previewedUid, touchControls])
 
   return (
     <div
@@ -59,7 +41,7 @@ export function PlayerHand({ hidden = false, previewedUid, onPreviewChange }: Pl
         const overlap = -(1.2 + n * 0.16)
         const playable = myTurn && canPlay(st.game, 'player', h.uid)
         const def = getDef(h.defId)
-        const previewed = mobileConfirmation && previewedUid === h.uid
+        const previewed = touchControls && previewedUid === h.uid
         const unavailableReason = !myTurn
           ? 'Aguarde seu turno'
           : def.cost > st.game.sides.player.qubits
@@ -75,7 +57,7 @@ export function PlayerHand({ hidden = false, previewedUid, onPreviewChange }: Pl
         } as CSSProperties
 
         const inspectOrPlay = () => {
-          if (mobileConfirmation) {
+          if (touchControls) {
             onPreviewChange(h.uid)
             return
           }
@@ -92,9 +74,9 @@ export function PlayerHand({ hidden = false, previewedUid, onPreviewChange }: Pl
               <button
                 type="button"
                 className="hand-card-inspect"
-                aria-label={`${mobileConfirmation ? 'Examinar' : 'Jogar'} ficha ${def.name}`}
-                aria-expanded={mobileConfirmation ? previewed : undefined}
-                aria-controls={mobileConfirmation ? `hand-play-${h.uid}` : undefined}
+                aria-label={`${touchControls ? 'Examinar' : 'Jogar'} ficha ${def.name}`}
+                aria-expanded={touchControls ? previewed : undefined}
+                aria-controls={touchControls ? `hand-play-${h.uid}` : undefined}
                 onClick={(event) => {
                   event.stopPropagation()
                   inspectOrPlay()
