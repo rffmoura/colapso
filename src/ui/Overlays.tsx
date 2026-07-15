@@ -349,67 +349,76 @@ export function ManualOverlay() {
         </header>
 
         <div className="manual-mission">
-          <span>missão do plantão</span>
-          <p><strong>Zere a Coerência do Autômato.</strong> Os dois começam com 25 de coerência; quem chegar a 0 perde.</p>
+          <span>seu posto no instituto</span>
+          <p>
+            Você é o Observador do turno da noite no Instituto Meia-Vida. Você e o Autômato disputam
+            Sujeitos quânticos — seres que existem em dois estados ao mesmo tempo. A{' '}
+            <strong>Coerência</strong> é a vida de vocês: ambos começam com 25. Zere a dele antes que
+            ele zere a sua.
+          </p>
         </div>
 
         <div className="manual-layout">
           <section className="manual-core" aria-labelledby="manual-core-title">
             <div className="manual-section-kicker">comece por aqui</div>
-            <h3 id="manual-core-title">Uma partida em cinco passos</h3>
+            <h3 id="manual-core-title">O básico em cinco passos</h3>
 
             <ol className="manual-steps">
               <li>
                 <div>
-                  <h4>Abasteça o turno</h4>
+                  <h4>Use sua energia</h4>
                   <p>
-                    No início do turno, seu máximo sobe 1 (até 8), os Qubits recarregam e sua mão
-                    completa 5 fichas, sempre comprando ao menos 1. Se o arquivo acabar, o descarte
-                    volta embaralhado.
+                    <strong>Qubits são sua energia.</strong> Você os gasta para jogar as fichas da sua
+                    mão; o número no canto mostra o custo. No início de cada turno, seu máximo de
+                    Qubits aumenta em 1 (até 8) e a energia recarrega. Seu <strong>Arquivo</strong> é o
+                    monte de compra: dele você compra até ficar com 5 fichas na mão, sempre ao menos 1.
+                    Se ele esvaziar, o monte de descarte é embaralhado e vira um novo Arquivo.
                   </p>
                 </div>
               </li>
               <li>
                 <div>
-                  <h4>Jogue uma ficha</h4>
+                  <h4>Conheça suas fichas</h4>
                   <p>
-                    Pague o custo no canto da carta. Sujeitos ficam na mesa; Protocolos resolvem uma
-                    vez e vão ao descarte. Um Sujeito normalmente espera o próximo turno para atacar.
+                    Há dois tipos. <strong>Sujeitos</strong> são os seres que você coloca na mesa para
+                    lutar. <strong>Protocolos</strong> fazem um efeito e vão para o descarte. Um
+                    Sujeito normalmente só ataca a partir do turno seguinte.
                   </p>
                 </div>
               </li>
               <li>
                 <div>
-                  <h4>Leia os estados A e B</h4>
+                  <h4>Dois estados ao mesmo tempo</h4>
                   <p>
-                    Todo Sujeito entra em <strong>superposição</strong>: os estados A vermelho e B azul
-                    pulsam juntos. Cada estado mostra Ataque em vermelho, Vida em azul e possível
-                    palavra-chave; enquanto indefinido, nenhuma palavra-chave vale.
+                    Todo Sujeito entra em <strong>superposição</strong>: seus estados A e B existem ao
+                    mesmo tempo. Cada um mostra Ataque em vermelho, Vida em azul e possíveis
+                    habilidades. Enquanto os dois piscam, essas habilidades não funcionam.
                   </p>
                 </div>
               </li>
               <li>
                 <div>
-                  <h4>Faça o estado colapsar</h4>
+                  <h4>Quando dois estados viram um</h4>
                   <p>
-                    Quando ataca, é atacado ou sofre Medição, o Sujeito <strong>colapsa</strong>: A ou B
-                    fica definitivo, normalmente em 50/50. O selo azul passa a mostrar a Vida atual,
-                    e o dano permanece entre turnos.
+                    Quando um Sujeito ataca, é atacado ou recebe o Protocolo Medição, apenas A ou B
+                    fica. Esse é o <strong>colapso</strong>. Sem interferência, cada estado tem 50% de
+                    chance. Depois, o selo azul mostra a Vida atual; o dano permanece entre turnos.
                   </p>
                   <p className="manual-emphasis">
-                    <strong>Observar:</strong> custa 2 Qubits, uma vez por turno. Escolha A ou B para
-                    qualquer Sujeito em superposição: 75% sai o estado escolhido; 25%, o oposto.
-                    Medição continua 50/50; Polarização garante o estado de um Sujeito seu.
+                    <strong>Observar influencia o colapso.</strong> Por 2 Qubits, uma vez por turno,
+                    escolha A ou B de qualquer Sujeito em superposição: 75% de chance para sua escolha
+                    e 25% para a outra. Medição é 50/50. Polarização garante sua escolha, mas apenas em
+                    um Sujeito seu.
                   </p>
                 </div>
               </li>
               <li>
                 <div>
-                  <h4>Resolva o combate</h4>
+                  <h4>Ataque e cause dano</h4>
                   <p>
-                    Cada Sujeito ataca uma vez por turno. Entre Sujeitos, ambos causam Ataque
-                    simultaneamente e morrem com Vida 0. Atacar o Observador reduz Coerência sem
-                    revide. Um inimigo vivo pode atacar novamente no turno dele.
+                    Cada Sujeito ataca uma vez por turno. Contra outro Sujeito, ambos causam dano ao
+                    mesmo tempo; quem chegar a 0 de Vida morre. Contra o Autômato, o Ataque reduz a
+                    Coerência sem revide. Quem sobrevive pode atacar no turno seguinte.
                   </p>
                 </div>
               </li>
@@ -424,33 +433,36 @@ export function ManualOverlay() {
               <div>
                 <dt>Palavras-chave</dt>
                 <dd>
-                  <strong>Barreira</strong> deve ser atacada primeiro. <strong>Veloz</strong> ataca no
-                  turno em que entra. <strong>Fantasma</strong> ignora Barreira. Só valem no estado
-                  colapsado que as possui.
+                  Enquanto houver um inimigo com <strong>Barreira</strong>, seus ataques devem mirar
+                  nele. <strong>Veloz</strong> permite atacar no turno em que o Sujeito entra.
+                  <strong>Fantasma</strong> ignora Barreira. Essas habilidades só funcionam se estiverem
+                  no estado que permaneceu após o colapso.
                 </dd>
               </div>
               <div>
                 <dt>Emaranhamento</dt>
                 <dd>
-                  O E-03 liga um Sujeito seu a um inimigo. Quando um colapsa, o outro fixa o mesmo
-                  estado; quando um morre, o parceiro sofre 2 de dano. Esse colapso indireto não é uma
-                  nova influência de Observar.
+                  O Protocolo Emaranhamento liga um Sujeito seu a um inimigo. Quando um colapsa, o
+                  outro fica no mesmo estado. Quando um morre, o parceiro sofre 2 de dano. Esse colapso
+                  indireto não conta como um novo uso de Observar.
                 </dd>
               </div>
               <div>
                 <dt>Contramedidas</dt>
                 <dd>
-                  Cada lado arma uma carta por duelo. A sua fica aberta; a do Autômato, secreta até
-                  disparar. O Supervisor prepara uma segunda após a primeira. Cada uma funciona uma
-                  vez, não ativa outra contramedida e continua clicável no painel para consulta.
+                  São cartas especiais que reagem automaticamente a acontecimentos do duelo. A sua
+                  fica aberta; a do Autômato, secreta até disparar. Cada uma funciona uma vez e não
+                  ativa outra Contramedida. O Supervisor prepara uma segunda após a primeira. Clique
+                  na carta do painel para reler o efeito, mesmo depois de usada.
                 </dd>
               </div>
               <div>
                 <dt>Plantão contínuo</dt>
                 <dd>
-                  São três setores e o Autômato Supervisor. Cada vitória dá à IA uma Diretriz
-                  cumulativa e adiciona uma contramedida ao seu arsenal; você equipa uma para o próximo
-                  duelo. Derrota reinicia estágio, arsenal e Diretrizes.
+                  Um Plantão tem três setores e a batalha final contra o Autômato Supervisor. Cada
+                  vitória dá à máquina um bônus cumulativo, chamado Diretriz, e adiciona uma
+                  Contramedida ao seu arsenal. Você equipa uma para o duelo seguinte. Uma derrota
+                  apaga estágio, arsenal e Diretrizes.
                 </dd>
               </div>
             </dl>
