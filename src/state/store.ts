@@ -90,6 +90,8 @@ export interface StoreState {
   blockPulse: { id: number; uids: number[] } | null
   /** cartas especiais reveladas, mantidas por tempo suficiente para a animação */
   secretFx: Array<{ id: number; owner: Owner; secretId: SecretId }>
+  /** protocolo do Autômato exibido brevemente antes de seu efeito */
+  protocolFx: { id: number; defId: string } | null
   /** contramedida aberta para leitura detalhada */
   secretInspector: { owner: Owner; secretId: SecretId; status: 'armed' | 'used' } | null
 }
@@ -101,6 +103,11 @@ const COLLAPSE_MS = 1000
 const LUNGE_MS = 230
 const IMPACT_MS = 430
 const AI_PAUSE_MS = 700
+const SECRET_REVEAL_MS = 2400
+const SECRET_DAMAGE_DELAY_MS = 520
+const SECRET_RESOLUTION_PAUSE_MS = 950
+const PROTOCOL_REVEAL_MS = 1000
+const PROTOCOL_EXIT_MS = 180
 
 function wait(ms: number) {
   return new Promise<void>((r) => setTimeout(r, ms))
@@ -125,6 +132,7 @@ let state: StoreState = {
   drawFx: [],
   blockPulse: null,
   secretFx: [],
+  protocolFx: null,
   secretInspector: null,
 }
 
@@ -220,7 +228,16 @@ function apply(step: StepResult): GameEvent[] {
   for (const e of step.events) {
     switch (e.t) {
       case 'damage':
-        pushFx(keyOf(e.target), `-${e.amount}`, 'dano')
+        if (e.source === 'secret') {
+          const targetKey = keyOf(e.target)
+          setTimeout(() => {
+            sfx.hit()
+            shakeBoard()
+            pushFx(targetKey, `-${e.amount}`, 'dano')
+          }, SECRET_DAMAGE_DELAY_MS)
+        } else {
+          pushFx(keyOf(e.target), `-${e.amount}`, 'dano')
+        }
         break
       case 'collapse': {
         sfx.collapse()
@@ -232,7 +249,8 @@ function apply(step: StepResult): GameEvent[] {
         break
       }
       case 'death':
-        sfx.death()
+        if (e.source === 'secret') setTimeout(() => sfx.death(), SECRET_DAMAGE_DELAY_MS + 120)
+        else sfx.death()
         break
       case 'draw': {
         sfx.draw()
@@ -268,7 +286,10 @@ function apply(step: StepResult): GameEvent[] {
         queueMemo('contramedida')
         const item = { id: fxId++, owner: e.owner, secretId: e.id }
         set({ secretFx: [...state.secretFx, item] })
-        setTimeout(() => set({ secretFx: state.secretFx.filter((secret) => secret.id !== item.id) }), 2400)
+        setTimeout(
+          () => set({ secretFx: state.secretFx.filter((secret) => secret.id !== item.id) }),
+          SECRET_REVEAL_MS,
+        )
         pushFx(`hero-${e.owner}`, 'contramedida!', 'info')
         break
       }
@@ -347,12 +368,24 @@ async function attackSeq(attackerUid: number, target: TargetRef) {
   set({ attackAnim: null })
 }
 
+async function revealAiProtocol(defId: string) {
+  const item = { id: fxId++, defId }
+  set({ protocolFx: item })
+  await wait(PROTOCOL_REVEAL_MS)
+  if (state.protocolFx?.id === item.id) set({ protocolFx: null })
+  await wait(PROTOCOL_EXIT_MS)
+}
+
 async function spellSeq(owner: Owner, handUid: number, spell: SpellKind, targets: TargetRef[], face?: 0 | 1) {
+  const defId = state.game.sides[owner].hand.find((card) => card.uid === handUid)?.defId
   const paid = paySpell(state.game, owner, handUid)
   if (paid.state === state.game) return
-  apply(paid)
-  await wait(350)
+  const paymentEvents = apply(paid)
+  const interruptedBySecret = paymentEvents.some((event) => event.t === 'secretTrigger')
+  if (interruptedBySecret) await wait(SECRET_REVEAL_MS + 250)
+  else await wait(350)
   if (state.game.winner) return
+  if (owner === 'ai' && defId) await revealAiProtocol(defId)
   switch (spell) {
     case 'medir':
       if (targets[0]?.kind === 'creature' && face !== undefined) {
@@ -438,6 +471,7 @@ export function startGame() {
     busy: false,
     memoQueue: [],
     secretFx: [],
+    protocolFx: null,
     secretInspector: null,
   })
 }
@@ -457,6 +491,7 @@ function prepareMatch(run: RunState) {
     busy: true,
     memoQueue: [],
     secretFx: [],
+    protocolFx: null,
     secretInspector: null,
   })
 }
@@ -520,8 +555,9 @@ export function endPlayerTurn() {
   if (state.busy || state.phase !== 'game' || state.game.active !== 'player') return
   sfx.select()
   set({ busy: true, selection: null })
-  apply(endTurn(state.game))
   void (async () => {
+    const events = apply(endTurn(state.game))
+    if (events.some((event) => event.t === 'secretTrigger')) await wait(SECRET_RESOLUTION_PAUSE_MS)
     if (await checkEnd()) return
     await runStartTurn()
   })()
@@ -544,6 +580,7 @@ export function clickHandCard(handUid: number) {
       const events = apply(playCreature(state.game, 'player', handUid))
       queueMemo('superposicao')
       if (events.some((e) => e.t === 'collapse')) await wait(COLLAPSE_MS)
+      if (events.some((e) => e.t === 'secretTrigger')) await wait(SECRET_RESOLUTION_PAUSE_MS)
       set({ busy: false })
       await checkEnd()
     })()
@@ -792,6 +829,7 @@ async function aiTurn() {
         const events = apply(playCreature(state.game, 'ai', action.handUid))
         if (events.length === 0) break
         if (events.some((e) => e.t === 'collapse')) await wait(COLLAPSE_MS)
+        if (events.some((e) => e.t === 'secretTrigger')) await wait(SECRET_RESOLUTION_PAUSE_MS)
         break
       }
       case 'spell':
@@ -810,7 +848,8 @@ async function aiTurn() {
   }
   set({ aiThinking: false })
   if (await checkEnd()) return
-  apply(endTurn(state.game))
+  const endEvents = apply(endTurn(state.game))
+  if (endEvents.some((event) => event.t === 'secretTrigger')) await wait(SECRET_RESOLUTION_PAUSE_MS)
   if (await checkEnd()) return
   await runStartTurn()
 }

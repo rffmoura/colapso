@@ -85,6 +85,12 @@ describe('influência de Observar', () => {
     expect(success.state.sides.ai.coherence).toBe(20)
     expect(success.state.board.ai[0].collapsed).toBe(0)
     expect(success.events.filter((event) => event.t === 'secretTrigger')).toHaveLength(1)
+    expect(success.events).toContainEqual({
+      t: 'damage',
+      target: { kind: 'hero', owner: 'ai' },
+      amount: 5,
+      source: 'secret',
+    })
   })
 })
 
@@ -110,6 +116,19 @@ describe('contramedidas', () => {
     expect(result.events.findIndex((event) => event.t === 'damage' && event.target.kind === 'hero')).toBeLessThan(
       result.events.findIndex((event) => event.t === 'secretTrigger'),
     )
+    expect(result.events).toContainEqual({
+      t: 'damage',
+      target: { kind: 'creature', uid: attacker.uid },
+      amount: 4,
+      source: 'secret',
+    })
+    expect(result.events).toContainEqual({
+      t: 'death',
+      uid: attacker.uid,
+      defId: attacker.defId,
+      owner: 'ai',
+      source: 'secret',
+    })
   })
 
   it('Reação em Cadeia revela antes do efeito da segunda carta e pode interrompê-la', () => {
@@ -122,6 +141,12 @@ describe('contramedidas', () => {
     expect(second.state.winner).toBe('ai')
     expect(second.state.board.player).toHaveLength(1)
     expect(second.events.some((event) => event.t === 'summon')).toBe(false)
+    expect(second.events).toContainEqual({
+      t: 'damage',
+      target: { kind: 'hero', owner: 'player' },
+      amount: 4,
+      source: 'secret',
+    })
     expect(second.events.findIndex((event) => event.t === 'secretTrigger')).toBeLessThan(
       second.events.findIndex((event) => event.t === 'gameover'),
     )
@@ -164,6 +189,12 @@ describe('contramedidas', () => {
     expect(result.state.sides.ai.coherence).toBe(21)
     expect(result.state.active).toBe('player')
     expect(result.state.sides.player.activeSecret).toBeNull()
+    expect(result.events).toContainEqual({
+      t: 'damage',
+      target: { kind: 'hero', owner: 'ai' },
+      amount: 4,
+      source: 'secret',
+    })
   })
 
   it('arma a segunda contramedida do chefe somente após a primeira disparar', () => {

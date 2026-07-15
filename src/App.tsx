@@ -1,7 +1,7 @@
 import { useEffect } from 'react'
 import { cancelSelection, closeSecretInspector, toggleManual, toggleMute, useStore } from './state/store'
 import { GameBoard } from './ui/GameBoard'
-import { ManualOverlay, MemoToast, SecretInspector, SecretRevealLayer } from './ui/Overlays'
+import { ManualOverlay, MemoToast, ProtocolRevealLayer, SecretInspector, SecretRevealLayer } from './ui/Overlays'
 import { BriefingScreen, RewardScreen, RunEndScreen, SecretDraftScreen } from './ui/RunScreens'
 import { TitleScreen } from './ui/TitleScreen'
 
@@ -41,6 +41,7 @@ export default function App() {
       {st.phase === 'reward' && <RewardScreen />}
       {st.phase === 'run-lost' && <RunEndScreen won={false} />}
       {st.phase === 'run-won' && <RunEndScreen won />}
+      <ProtocolRevealLayer />
       <SecretRevealLayer />
       <SecretInspector />
       <MemoToast />

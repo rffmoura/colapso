@@ -26,8 +26,8 @@ export const SECRETS: Record<SecretId, SecretDef> = {
     id: 'reacao-em-cadeia',
     code: 'CT-04',
     name: 'Reação em Cadeia',
-    trigger: 'Segunda ficha no turno',
-    text: 'Antes do efeito da segunda ficha inimiga no turno, o adversário perde 4 de Coerência. Se sobreviver, a ficha resolve.',
+    trigger: 'Oponente joga a segunda ficha no turno',
+    text: 'Quando o oponente joga sua segunda ficha no mesmo turno, ele perde 4 de Coerência antes de ela resolver. Se chegar a zero, a ficha não resolve.',
   },
   'protocolo-emergencia': {
     id: 'protocolo-emergencia',

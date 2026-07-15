@@ -134,7 +134,10 @@ bordas devem inverter sua direção para nunca serem cortados pela viewport.
 - **Emaranhamento:** barbante de mural entre as fichas, com balanço discreto.
 - **Ataque:** deslocamento com tilt, impacto seco e shake curto do tabuleiro.
 - **Contramedida:** revelação semelhante à abertura de um documento lacrado; depois volta ao slot
-  como registro utilizado.
+  como registro utilizado. Se causar dano, a revelação antecede o impacto, o som e o número
+  flutuante sobre o alvo.
+- **Protocolo hostil:** a ficha usada pelo Autômato é interceptada brevemente antes de seu efeito;
+  nenhum dano ou alteração da mesa deve parecer sem origem.
 - **Turno:** tarja de telegrama (`SEU PLANTÃO · TURNO 3`).
 - **Plantão:** pastas entram como documentos protocolados, com movimentos curtos e físicos.
 - **Fim:** relatório com `PLANTÃO CUMPRIDO` ou `ARQUIVO REINICIADO`.

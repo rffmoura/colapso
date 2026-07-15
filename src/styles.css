@@ -1821,6 +1821,39 @@ button.secret-card { cursor: pointer; }
 
 .secret-reveal .secret-card { min-height: 15rem; }
 
+.protocol-reveal-layer {
+  position: fixed;
+  inset: 0;
+  z-index: 43;
+  display: grid;
+  place-items: center;
+  pointer-events: none;
+  perspective: 900px;
+}
+
+.protocol-reveal {
+  display: grid;
+  justify-items: center;
+  padding: 0.62rem 0.68rem 0.7rem;
+  background: var(--paper-card);
+  border: 2px solid var(--ink);
+  border-radius: 4px;
+  box-shadow: 8px 10px 0 oklch(0.25 0.02 60 / 0.25);
+}
+
+.protocol-reveal-kicker {
+  width: 100%;
+  margin-bottom: 0.52rem;
+  padding: 0.3rem 0.48rem 0.24rem;
+  color: var(--paper-card);
+  background: var(--particle);
+  font-family: var(--font-type);
+  font-size: 0.56rem;
+  letter-spacing: 0.12em;
+  text-align: center;
+  text-transform: uppercase;
+}
+
 .secret-inspector-overlay {
   position: fixed;
   inset: 0;
@@ -1902,6 +1935,16 @@ button.secret-card { cursor: pointer; }
   font-family: var(--font-type);
   font-size: 0.82rem;
   line-height: 1.6;
+}
+
+.secret-inspector-copy .secret-inspector-perspective {
+  margin-top: 0.68rem;
+  padding: 0.5rem 0.62rem 0.44rem;
+  color: var(--ink);
+  background: var(--paper-dim);
+  border: 1px dashed var(--ink-soft);
+  font-size: 0.7rem;
+  line-height: 1.45;
 }
 
 .secret-inspector-history {
@@ -2925,6 +2968,7 @@ button.secret-card { cursor: pointer; }
 
   .secret-card,
   .secret-reveal,
+  .protocol-reveal,
   .secret-inspector {
     transition-duration: 0.01ms !important;
   }

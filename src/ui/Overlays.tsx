@@ -1,5 +1,6 @@
 import { AnimatePresence, motion } from 'motion/react'
 import { useEffect, useState } from 'react'
+import { getDef } from '../engine/cards'
 import { getSecret } from '../engine/secrets'
 import {
   closeSecretInspector,
@@ -12,6 +13,7 @@ import {
   useStore,
 } from '../state/store'
 import { MEMOS } from './didactics'
+import { CardView } from './CardView'
 import { SecretCard } from './SecretCard'
 
 export function TurnBanner() {
@@ -217,6 +219,33 @@ export function SecretRevealLayer() {
   )
 }
 
+/** Protocolo hostil interceptado antes de seu efeito atingir a mesa. */
+export function ProtocolRevealLayer() {
+  const st = useStore()
+  const protocol = st.protocolFx ? getDef(st.protocolFx.defId) : null
+  return (
+    <div className="protocol-reveal-layer" aria-live="assertive">
+      <AnimatePresence>
+        {st.protocolFx && protocol && (
+          <motion.div
+            key={st.protocolFx.id}
+            className="protocol-reveal"
+            role="status"
+            aria-label={`O Autômato usou o Protocolo ${protocol.name}`}
+            initial={{ opacity: 0, y: -64, rotate: 3.5, scale: 0.86 }}
+            animate={{ opacity: 1, y: 0, rotate: -1, scale: 1 }}
+            exit={{ opacity: 0, y: 28, rotate: 1.5, scale: 0.94 }}
+            transition={{ duration: 0.28, ease: [0.22, 1, 0.36, 1] }}
+          >
+            <div className="protocol-reveal-kicker">protocolo interceptado do autômato</div>
+            <CardView defId={st.protocolFx.defId} size="hand" showCost />
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </div>
+  )
+}
+
 export function SecretInspector() {
   const st = useStore()
   const inspected = st.secretInspector
@@ -263,6 +292,11 @@ export function SecretInspector() {
                 {resolvedStatus === 'armed'
                   ? 'Esta contramedida ainda pode disparar neste duelo. Use o gatilho abaixo para planejar seu turno.'
                   : 'Esta contramedida já disparou e não pode ativar novamente neste duelo. Ela permanece no painel para consulta.'}
+              </p>
+              <p className="secret-inspector-perspective">
+                {inspected.owner === 'ai'
+                  ? 'Nesta ficha inimiga, “oponente” significa você.'
+                  : 'Nesta ficha, “oponente” significa o Autômato.'}
               </p>
               {resolvedStatus === 'used' && inspectedSide && inspectedSide.revealedSecrets.length > 1 && (
                 <div className="secret-inspector-history" aria-label="Contramedidas já reveladas">

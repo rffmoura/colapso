@@ -166,11 +166,11 @@ function applyHeroDamage(
   if (source === 'normal' && lethal && triggerSecret(s, owner, 'protocolo-emergencia', ev)) {
     const dealt = Math.max(0, side.coherence - 1)
     side.coherence = 1
-    if (dealt > 0) ev.push({ t: 'damage', target: { kind: 'hero', owner }, amount: dealt })
+    if (dealt > 0) ev.push({ t: 'damage', target: { kind: 'hero', owner }, amount: dealt, source })
     return
   }
   side.coherence -= amount
-  ev.push({ t: 'damage', target: { kind: 'hero', owner }, amount })
+  ev.push({ t: 'damage', target: { kind: 'hero', owner }, amount, source })
   if (side.coherence <= 0) {
     side.coherence = 0
     s.winner = other(owner)
@@ -205,14 +205,14 @@ function doCollapse(
   }
 }
 
-function killCreature(s: GameState, uid: number, ev: GameEvent[]) {
+function killCreature(s: GameState, uid: number, ev: GameEvent[], source: DamageSource = 'normal') {
   const c = findCreature(s, uid)
   if (!c) return
   const board = s.board[c.owner]
   const idx = board.findIndex((x) => x.uid === uid)
   if (idx >= 0) board.splice(idx, 1)
   s.sides[c.owner].discard.push(c.defId)
-  ev.push({ t: 'death', uid, defId: c.defId, owner: c.owner })
+  ev.push({ t: 'death', uid, defId: c.defId, owner: c.owner, source })
   if (c.entangledWith !== null) {
     const partner = findCreature(s, c.entangledWith)
     if (partner) {
@@ -234,13 +234,13 @@ function applyCreatureDamage(
   if (!c) return
   if (c.collapsed === null) doCollapse(s, uid, undefined, true, ev)
   c.hp -= amount
-  ev.push({ t: 'damage', target: { kind: 'creature', uid }, amount })
+  ev.push({ t: 'damage', target: { kind: 'creature', uid }, amount, source })
   if (c.hp <= 0) {
     if (source === 'normal' && triggerSecret(s, c.owner, 'efeito-zeno', ev)) {
       c.hp = 1
       return
     }
-    killCreature(s, uid, ev)
+    killCreature(s, uid, ev, source)
   }
 }
 

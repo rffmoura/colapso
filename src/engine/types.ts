@@ -149,8 +149,8 @@ export type GameEvent =
   | { t: 'reshuffle'; owner: Owner }
   | { t: 'summon'; uid: number }
   | { t: 'collapse'; uid: number; face: 0 | 1; forced: boolean }
-  | { t: 'damage'; target: TargetRef; amount: number }
-  | { t: 'death'; uid: number; defId: string; owner: Owner }
+  | { t: 'damage'; target: TargetRef; amount: number; source: 'normal' | 'secret' }
+  | { t: 'death'; uid: number; defId: string; owner: Owner; source: 'normal' | 'secret' }
   | { t: 'entangle'; a: number; b: number }
   | { t: 'echo'; from: number; to: number; amount: number }
   | { t: 'spell'; defId: string; owner: Owner }
