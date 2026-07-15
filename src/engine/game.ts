@@ -151,6 +151,7 @@ function triggerSecret(s: GameState, owner: Owner, id: SecretId, ev: GameEvent[]
 }
 
 type DamageSource = 'normal' | 'secret'
+const EMERGENCY_COHERENCE = 3
 
 function applyHeroDamage(
   s: GameState,
@@ -163,8 +164,8 @@ function applyHeroDamage(
   const side = s.sides[owner]
   const lethal = amount >= side.coherence
   if (source === 'normal' && lethal && triggerSecret(s, owner, 'protocolo-emergencia', ev)) {
-    const dealt = Math.max(0, side.coherence - 1)
-    side.coherence = 1
+    const dealt = Math.max(0, side.coherence - EMERGENCY_COHERENCE)
+    side.coherence = EMERGENCY_COHERENCE
     if (dealt > 0) ev.push({ t: 'damage', target: { kind: 'hero', owner }, amount: dealt, source })
     return
   }

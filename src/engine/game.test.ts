@@ -153,13 +153,23 @@ describe('contramedidas', () => {
     )
   })
 
-  it('Protocolo de Emergência deixa o herói em 1 contra dano normal', () => {
+  it('Protocolo de Emergência estabiliza o herói em 3 contra dano normal', () => {
     const base = newGame(setup('protocolo-emergencia'))
-    base.sides.player.coherence = 3
-    const result = damageTarget(base, { kind: 'hero', owner: 'player' }, 7)
-    expect(result.state.sides.player.coherence).toBe(1)
+    base.sides.player.coherence = 8
+    const result = damageTarget(base, { kind: 'hero', owner: 'player' }, 9)
+    expect(result.state.sides.player.coherence).toBe(3)
     expect(result.state.winner).toBeNull()
     expect(result.state.sides.player.activeSecret).toBeNull()
+    expect(result.events).toContainEqual({
+      t: 'damage',
+      target: { kind: 'hero', owner: 'player' },
+      amount: 5,
+      source: 'normal',
+    })
+
+    const critical = newGame(setup('protocolo-emergencia'))
+    critical.sides.player.coherence = 2
+    expect(damageTarget(critical, { kind: 'hero', owner: 'player' }, 3).state.sides.player.coherence).toBe(3)
   })
 
   it('dano de contramedida não ativa Protocolo de Emergência', () => {

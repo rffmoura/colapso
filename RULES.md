@@ -135,7 +135,7 @@ usada, a carta permanece consultável no painel.
 | **Efeito Zeno** | Primeiro Sujeito aliado que morreria | Ele permanece em campo com 1 de Vida. |
 | **Retaliação Q-88** | Ataque direto de um Sujeito inimigo | Depois do dano direto, o atacante recebe 4 de dano. |
 | **Reação em Cadeia** | Segunda ficha jogada pelo adversário no turno | Antes do efeito ou entrada da ficha, o adversário perde 4 de Coerência. Se morrer, a ficha não resolve. |
-| **Protocolo de Emergência** | Primeiro dano letal contra seu Observador | Em vez de morrer, seu Observador fica com 1 de Coerência. |
+| **Protocolo de Emergência** | Primeiro dano letal contra seu Observador | Em vez de morrer, seu Observador fica com 3 de Coerência. |
 | **Cópia Carbono** | Protocolo inimigo completamente resolvido | Compre 2 fichas. |
 | **Resíduo de Energia** | Adversário encerra o turno com 3 ou mais Qubits | Ele perde 4 de Coerência antes da troca de turno. |
 

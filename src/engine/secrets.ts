@@ -34,7 +34,7 @@ export const SECRETS: Record<SecretId, SecretDef> = {
     code: 'CT-05',
     name: 'Protocolo de Emergência',
     trigger: 'Primeiro dano letal',
-    text: 'O primeiro dano letal contra seu Observador o deixa com 1 de Coerência.',
+    text: 'O primeiro dano letal contra seu Observador o deixa com 3 de Coerência.',
   },
   'copia-carbono': {
     id: 'copia-carbono',
