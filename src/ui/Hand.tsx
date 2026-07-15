@@ -6,7 +6,7 @@ import { canPlay } from '../engine/game'
 import { clickHandCard, refRegistry, useStore } from '../state/store'
 import { CardView } from './CardView'
 
-export function PlayerHand() {
+export function PlayerHand({ hidden = false }: { hidden?: boolean }) {
   const st = useStore()
   const hand = st.game.sides.player.hand
   const myTurn = st.game.active === 'player' && !st.busy && st.phase === 'game'
@@ -17,7 +17,13 @@ export function PlayerHand() {
   }, [])
 
   return (
-    <div className="hand" ref={registerRef}>
+    <div
+      id="player-hand"
+      className="hand"
+      ref={registerRef}
+      aria-hidden={hidden || undefined}
+      inert={hidden || undefined}
+    >
       {hand.map((h, i) => {
         const spread = (i - (n - 1) / 2) / Math.max(1, n - 1)
         // sobreposição cresce com o tamanho da mão para o leque caber na tela
@@ -27,6 +33,7 @@ export function PlayerHand() {
           marginInline: `${overlap}rem`,
           zIndex: i,
           '--fan-y': `${Math.abs(spread) * 14}px`,
+          '--fan-y-mobile': `${Math.abs(spread) * 8}px`,
           '--fan-rot': `${spread * 8}deg`,
         } as CSSProperties
         return (

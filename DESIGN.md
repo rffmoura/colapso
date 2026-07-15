@@ -151,9 +151,17 @@ animação.
 
 ## Responsividade e acessibilidade
 
-- Desktop organiza a mesa horizontalmente; telas estreitas preservam primeiro a leitura das
-  cartas, depois a decoração.
-- Telas de Plantão e inspetores mudam para uma coluna e podem rolar sem esconder a ação principal.
+- Desktop organiza a mesa horizontalmente. Em celulares, a experiência também é horizontal e
+  usa uma composição própria para alturas de até 560 px: crachá inimigo, duas bancadas e bandeja
+  do jogador permanecem visíveis ao mesmo tempo. Em orientação vertical, mostrar um aviso curto
+  para girar o aparelho.
+- No celular, os painéis nunca podem quebrar em uma segunda linha. Arte, estados A/B, atributos,
+  Coerência, Qubits, Observar e Contramedida têm prioridade; decoração e indicadores redundantes
+  podem ser reduzidos. A mão funciona como uma bandeja retrátil: recolhê-la libera toda a bancada,
+  mas mantém crachá, Arquivo e descarte disponíveis. Respeitar os `safe-area-inset-*` de aparelhos
+  com recorte de tela.
+- Telas de Plantão, manual e inspetores podem rolar, mas a escolha principal deve aparecer na
+  primeira dobra em paisagem. Três opções iniciais permanecem comparáveis lado a lado.
 - Alvos e cartas clicáveis precisam de estado de foco, nome acessível e operação por teclado.
 - Cor nunca é o único indicador de A/B, aliado/inimigo, armado/utilizado ou vitória/derrota.
 - Tooltips complementam rótulos; não podem ser a única forma de descobrir uma ação essencial.

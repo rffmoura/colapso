@@ -10,6 +10,7 @@ import { DrawFxLayer, PileGroup } from './Piles'
 export function GameBoard() {
   const st = useStore()
   const canEnd = !st.busy && st.phase === 'game' && st.game.active === 'player'
+  const [handLowered, setHandLowered] = useState(false)
 
   // sacode a bancada a cada impacto
   const [shaking, setShaking] = useState(false)
@@ -25,7 +26,7 @@ export function GameBoard() {
 
   return (
     <>
-      <div className="game" onClick={cancelSelection}>
+      <div className={`game${handLowered ? ' hand-lowered' : ''}`} onClick={cancelSelection}>
         <div className="row-top">
           <HeroPanel owner="ai" />
           <AiHand />
@@ -65,8 +66,21 @@ export function GameBoard() {
         </div>
 
         <div className="row-bottom">
+          <button
+            type="button"
+            className="btn-hand-toggle"
+            aria-controls="player-hand"
+            aria-expanded={!handLowered}
+            onClick={(event) => {
+              event.stopPropagation()
+              setHandLowered((lowered) => !lowered)
+            }}
+          >
+            <span className="hand-toggle-chevron" aria-hidden="true" />
+            <span>{handLowered ? `Mostrar mão (${st.game.sides.player.hand.length})` : 'Abaixar mão'}</span>
+          </button>
           <HeroPanel owner="player" />
-          <PlayerHand />
+          <PlayerHand hidden={handLowered} />
           <PileGroup owner="player" />
         </div>
       </div>

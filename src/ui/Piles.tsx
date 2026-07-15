@@ -26,6 +26,8 @@ export function PileGroup({ owner }: { owner: Owner }) {
       <div
         className={`pile${tipDown}`}
         data-tip="Arquivo: no início do turno, compra-se até ter 5 fichas. Quando esvazia, o descarte volta embaralhado."
+        tabIndex={0}
+        onClick={(event) => event.stopPropagation()}
       >
         <div ref={registerDeck} className={`pile-stack${side.deck.length === 0 ? ' empty' : ''}`}>
           {side.deck.length > 0 && (
@@ -47,6 +49,8 @@ export function PileGroup({ owner }: { owner: Owner }) {
             ? `Descarte: protocolos usados e sujeitos arquivados. No topo: ${getDef(topDiscard).name}.`
             : 'Descarte: protocolos usados e sujeitos arquivados vêm parar aqui.'
         }
+        tabIndex={0}
+        onClick={(event) => event.stopPropagation()}
       >
         <div className={`pile-stack${topDiscard ? '' : ' empty'}`}>
           <AnimatePresence>
