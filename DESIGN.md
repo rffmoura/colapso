@@ -160,9 +160,11 @@ animação.
   podem ser reduzidos. A mão funciona como uma bandeja retrátil: recolhê-la libera toda a bancada,
   mas mantém crachá, Arquivo e descarte disponíveis. Respeitar os `safe-area-inset-*` de aparelhos
   com recorte de tela.
-- Como não existe `hover` no celular, o primeiro toque em uma ficha da mão apenas a amplia para
-  leitura. Jogar exige uma confirmação explícita; fichas indisponíveis continuam consultáveis e a
-  própria ação explica se faltam Qubits, turno ou espaço na bancada.
+- Controles por toque dependem da capacidade de entrada (`hover`/`pointer`), nunca apenas da
+  resolução. Assim, celulares e tablets recebem a bandeja retrátil e o primeiro toque em uma
+  ficha apenas a amplia para leitura; monitores pequenos com mouse mantêm hover e jogada direta.
+  Jogar por toque exige confirmação explícita, e fichas indisponíveis continuam consultáveis com
+  a própria ação explicando se faltam Qubits, turno ou espaço na bancada.
 - Telas de Plantão, manual e inspetores podem rolar, mas a escolha principal deve aparecer na
   primeira dobra em paisagem. Três opções iniciais permanecem comparáveis lado a lado.
 - Alvos e cartas clicáveis precisam de estado de foco, nome acessível e operação por teclado.
