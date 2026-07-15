@@ -52,4 +52,35 @@ describe('informação oculta da IA', () => {
       face: 0,
     })
   })
+
+  it('Túnel prepara uma ameaça recém-jogada para atacar', () => {
+    const state = newGame(setup)
+    state.turn = 4
+    state.active = 'ai'
+    state.sides.ai.hand = [{ uid: 710, defId: 'tunel' }]
+    state.sides.ai.qubits = 2
+    state.sides.ai.maxQubits = 4
+    state.board.ai = [
+      {
+        uid: 711,
+        defId: 'quasar',
+        owner: 'ai',
+        collapsed: null,
+        hp: 0,
+        attacksUsed: 0,
+        summonedTurn: state.turn,
+        entangledWith: null,
+        tempKeywords: [],
+        ghostProtected: false,
+      },
+    ]
+    state.board.player = []
+
+    expect(decideAi(state)).toEqual({
+      kind: 'spell',
+      handUid: 710,
+      spell: 'tunel',
+      targets: [{ kind: 'creature', uid: 711 }],
+    })
+  })
 })

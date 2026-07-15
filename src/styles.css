@@ -729,6 +729,16 @@ button { font-family: inherit; color: inherit; background: none; border: none; c
 .collapsing-fast .state-row.state-0,
 .collapsing-fast .state-row.state-1 { animation-duration: 0.16s; }
 
+.oscillating .state-row.active-row {
+  animation: oscillation-row 0.72s var(--ease-out);
+}
+
+@keyframes oscillation-row {
+  0% { opacity: 0.2; translate: 0 4px; }
+  45% { opacity: 1; translate: 0 -2px; }
+  100% { translate: 0; }
+}
+
 /* após o colapso: linha ativa acesa, inativa riscada */
 
 .state-row.active-row { background: oklch(0.9 0.05 90); border-width: 2px; }
@@ -1044,6 +1054,60 @@ button { font-family: inherit; color: inherit; background: none; border: none; c
   border-radius: 50%;
   z-index: 8;
   pointer-events: none;
+}
+
+/* comprovante físico da troca A/B após um ataque com Oscilação */
+
+.oscillation-overlay {
+  position: absolute;
+  inset: 0;
+  z-index: 9;
+  display: grid;
+  place-items: center;
+  pointer-events: none;
+}
+
+.oscillation-mark {
+  display: grid;
+  grid-template-columns: auto auto auto;
+  align-items: center;
+  gap: 0.24rem;
+  padding: 0.34rem 0.52rem 0.4rem;
+  background: var(--paper-card);
+  border: 3px double var(--ink);
+  box-shadow: 3px 4px 0 oklch(0.25 0.02 60 / 0.24);
+  rotate: -4deg;
+  animation: oscillation-slip 0.82s var(--ease-out) both;
+}
+
+.oscillation-mark > span {
+  grid-column: 1 / -1;
+  font-family: var(--font-type);
+  font-size: 0.48rem;
+  letter-spacing: 0.14em;
+  text-align: center;
+  text-transform: uppercase;
+}
+
+.oscillation-mark strong {
+  width: 1.35rem;
+  height: 1.35rem;
+  display: grid;
+  place-items: center;
+  border: 2px solid currentColor;
+  border-radius: 50%;
+  font-family: var(--font-display);
+  font-size: 0.68rem;
+}
+
+.oscillation-mark strong.state-0 { color: var(--particle); }
+.oscillation-mark strong.state-1 { color: var(--wave); }
+.oscillation-mark b { color: var(--ink); font-size: 0.82rem; }
+
+@keyframes oscillation-slip {
+  0% { opacity: 0; transform: translateY(18px) scale(0.78) rotate(7deg); }
+  24%, 72% { opacity: 1; transform: translateY(0) scale(1) rotate(0); }
+  100% { opacity: 0; transform: translateY(-12px) scale(0.94) rotate(-2deg); }
 }
 
 /* escolha de face (Polarização) */
@@ -2941,6 +3005,8 @@ button.secret-card { cursor: pointer; }
   .protocol-sheet,
   .superposed .state-row,
   .collapsing-fast .state-row,
+  .oscillating .state-row,
+  .oscillation-mark,
   .super-seal,
   .blink,
   .tail-sway,

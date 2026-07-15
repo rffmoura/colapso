@@ -20,7 +20,12 @@ export const MEMOS: Record<string, Memo> = {
   colapso: {
     id: 'colapso',
     title: 'Colapso',
-    text: 'Observado! O carimbo sorteou um estado e agora ele é definitivo. Colapsar os seus na hora certa, e os do inimigo na errada, é o coração do jogo.',
+    text: 'Observado! O carimbo sorteou um estado; agora apenas essa linha está ativa. Colapsar os seus na hora certa, e os do inimigo na errada, é o coração do jogo.',
+  },
+  oscilacao: {
+    id: 'oscilacao',
+    title: 'Oscilação',
+    text: 'Este sujeito sobreviveu ao ataque e mudou para o outro estado. A troca não recupera Vida: ela apenas altera Ataque, Vida máxima e palavras-chave ativas.',
   },
   observar: {
     id: 'observar',

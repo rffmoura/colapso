@@ -91,6 +91,11 @@ export const sfx = {
     tone(880, 0.14, { type: 'sine', vol: 0.3, delay: 0.02 })
     noise(0.25, { vol: 0.25, freq: 2400, delay: 0.05 })
   },
+  oscillate: () => {
+    tone(360, 0.22, { type: 'triangle', vol: 0.2, slideTo: 680 })
+    tone(680, 0.22, { type: 'triangle', vol: 0.16, slideTo: 360, delay: 0.04 })
+    noise(0.12, { vol: 0.12, freq: 1800, delay: 0.05 })
+  },
   hit: () => {
     noise(0.16, { vol: 0.5, freq: 500 })
     tone(120, 0.16, { type: 'square', vol: 0.25, slideTo: 60 })

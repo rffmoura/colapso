@@ -76,8 +76,7 @@ export function expectedHealth(c: Creature): number {
 export function canAttack(s: GameState, c: Creature): boolean {
   if (c.owner !== s.active) return false
   if (c.attacksUsed > 0) return false
-  const summonedThisTurn = c.summonedTurn === s.turn
-  if (summonedThisTurn && !keywordsOf(c).includes('veloz')) return false
+  if (c.summonedTurn === s.turn) return false
   return true
 }
 
@@ -242,6 +241,23 @@ function applyCreatureDamage(
     }
     killCreature(s, uid, ev, source)
   }
+}
+
+/**
+ * Oscilação troca apenas o estado ativo. Não é um novo colapso, não se propaga
+ * por Emaranhamento e nunca recupera Vida.
+ */
+function oscillateCreature(s: GameState, uid: number, ev: GameEvent[]) {
+  const c = findCreature(s, uid)
+  if (!c || c.collapsed === null) return
+  const from = c.collapsed
+  if (!getDef(c.defId).faces![from].keywords.includes('oscilacao')) return
+  const to: 0 | 1 = from === 0 ? 1 : 0
+  c.collapsed = to
+  c.hp = Math.min(c.hp, getDef(c.defId).faces![to].health)
+  // Se uma futura ficha oscilar para Fantasma, a ativação também concede Intangível.
+  c.ghostProtected = c.ghostProtected || keywordsOf(c).includes('fantasma')
+  ev.push({ t: 'oscillate', uid, from, to })
 }
 
 function registerCardPlayed(s: GameState, owner: Owner, ev: GameEvent[]) {
@@ -447,12 +463,14 @@ export function entangleCreatures(prev: GameState, a: number, b: number): StepRe
   return { state: s, events: [{ t: 'entangle', a, b }] }
 }
 
-export function grantTempKeywords(prev: GameState, uid: number, kws: Keyword[]): StepResult {
+export function grantTunnel(prev: GameState, uid: number): StepResult {
   const s = clone(prev)
   const c = findCreature(s, uid)
   if (!c) return { state: prev, events: [] }
-  c.tempKeywords = [...new Set([...c.tempKeywords, ...kws])]
-  if (kws.includes('fantasma')) c.ghostProtected = true
+  c.tempKeywords = [...new Set([...c.tempKeywords, 'fantasma' as const])]
+  c.ghostProtected = true
+  // O Protocolo remove a preparação sem criar uma palavra-chave impressa impossível de ativar.
+  if (c.summonedTurn === s.turn) c.summonedTurn = s.turn - 1
   return { state: s, events: [] }
 }
 
@@ -488,6 +506,7 @@ export function resolveCombat(prev: GameState, attackerUid: number, target: Targ
   const ev: GameEvent[] = []
   const attacker = findCreature(s, attackerUid)
   if (!attacker || attacker.collapsed === null) return { state: prev, events: [] }
+  const shouldOscillate = keywordsOf(attacker).includes('oscilacao')
   attacker.attacksUsed += 1
   const atk = faceOf(attacker)!.attack
   if (target.kind === 'hero') {
@@ -501,6 +520,9 @@ export function resolveCombat(prev: GameState, attackerUid: number, target: Targ
     const counter = faceOf(defender)!.attack
     applyCreatureDamage(s, defender.uid, atk, ev)
     applyCreatureDamage(s, attacker.uid, counter, ev)
+  }
+  if (!s.winner && shouldOscillate && findCreature(s, attackerUid)) {
+    oscillateCreature(s, attackerUid, ev)
   }
   return { state: s, events: ev }
 }

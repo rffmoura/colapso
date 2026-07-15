@@ -4,7 +4,7 @@
 
 **COLAPSO** é um card game web single-player em que um Observador humano enfrenta o Autômato do
 Instituto Meia-Vida. Os Sujeitos entram em campo em superposição, com dois estados possíveis, e
-só assumem Ataque, Vida e habilidades definitivos quando colapsam.
+só ativam Ataque, Vida e habilidades quando colapsam.
 
 A experiência atual é um **Plantão contínuo** de quatro duelos: três setores e uma batalha final
 contra o Autômato Supervisor. Entre confrontos, a máquina recebe Diretrizes cumulativas e o
@@ -85,7 +85,8 @@ dos Memorandos didáticos permanecem no navegador.
 ### Superposição e colapso
 
 A dualidade A/B é a identidade do jogo. Antes do colapso, nenhuma palavra-chave impressa está
-ativa. Atacar, ser atacado e certos Protocolos provocam o estado definitivo.
+ativa. Atacar, ser atacado e certos Protocolos ativam um estado. Oscilação é a exceção tática:
+depois de atacar e sobreviver, algumas faces mudam para o outro estado sem recuperar Vida.
 
 ### Contramedidas
 

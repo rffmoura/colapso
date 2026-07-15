@@ -6,8 +6,9 @@ import {
   damageTarget,
   endTurn,
   finishProtocol,
-  grantTempKeywords,
+  grantTunnel,
   influenceCreature,
+  keywordsOf,
   newGame,
   playCreature,
   resolveCombat,
@@ -216,13 +217,15 @@ describe('contramedidas', () => {
 })
 
 describe('regressões e Diretrizes', () => {
-  it('mantém Barreira, Fantasma, Veloz e colapso forçado', () => {
+  it('mantém Barreira, Fantasma, preparação e colapso forçado', () => {
     const base = newGame(setup())
     const attacker = creature('foton', 920, 'player', 0)
     attacker.summonedTurn = base.turn
     const barrier = creature('sentinela', 921, 'ai', 0)
     base.board.player.push(attacker)
     base.board.ai.push(barrier)
+    expect(canAttack(base, attacker)).toBe(false)
+    attacker.summonedTurn = base.turn - 1
     expect(canAttack(base, attacker)).toBe(true)
     expect(validAttackTargets(base, attacker)).toEqual([{ kind: 'creature', uid: barrier.uid }])
     attacker.tempKeywords = ['fantasma']
@@ -266,11 +269,14 @@ describe('regressões e Diretrizes', () => {
     const base = newGame(setup())
     base.turn = 3
     const ghost = creature('neutrino', 926, 'player', 0)
+    ghost.summonedTurn = base.turn
     const defender = creature('sentinela', 927, 'ai', 0)
     base.board.player.push(ghost)
     base.board.ai.push(defender)
 
-    const granted = grantTempKeywords(base, ghost.uid, ['fantasma', 'veloz'])
+    expect(canAttack(base, ghost)).toBe(false)
+    const granted = grantTunnel(base, ghost.uid)
+    expect(canAttack(granted.state, granted.state.board.player[0])).toBe(true)
     const enemyTurn = startTurn(endTurn(granted.state).state)
     expect(enemyTurn.state.board.player[0].tempKeywords).toContain('fantasma')
     expect(enemyTurn.state.board.player[0].ghostProtected).toBe(true)
@@ -288,12 +294,58 @@ describe('regressões e Diretrizes', () => {
     const subject = creature('neutrino', 928, 'player')
     base.board.player.push(subject)
 
-    const granted = grantTempKeywords(base, subject.uid, ['fantasma', 'veloz'])
+    const granted = grantTunnel(base, subject.uid)
     const collapsed = collapseCreature(granted.state, subject.uid, 1)
 
     expect(collapsed.state.board.player[0].collapsed).toBe(1)
     expect(collapsed.state.board.player[0].tempKeywords).toContain('fantasma')
     expect(collapsed.state.board.player[0].ghostProtected).toBe(true)
+  })
+
+  it('Oscilação troca o estado depois do ataque sem recuperar Vida', () => {
+    const base = newGame(setup('copia-carbono', ['copia-carbono']))
+    base.turn = 2
+    const cat = creature('gato', 929, 'player', 0)
+    const partner = creature('sentinela', 933, 'ai')
+    cat.hp = 1
+    cat.entangledWith = partner.uid
+    partner.entangledWith = cat.uid
+    base.board.player.push(cat)
+    base.board.ai.push(partner)
+
+    const result = resolveCombat(base, cat.uid, { kind: 'hero', owner: 'ai' })
+    const shifted = result.state.board.player[0]
+
+    expect(result.state.sides.ai.coherence).toBe(21)
+    expect(shifted.collapsed).toBe(1)
+    expect(shifted.hp).toBe(1)
+    expect(keywordsOf(shifted)).toContain('barreira')
+    expect(result.state.board.ai[0].collapsed).toBeNull()
+    expect(result.events).toContainEqual({ t: 'oscillate', uid: cat.uid, from: 0, to: 1 })
+  })
+
+  it('Oscilação limita a Vida atual ao máximo do novo estado', () => {
+    const base = newGame(setup('copia-carbono', ['copia-carbono']))
+    base.turn = 2
+    const hunger = creature('singularidade', 930, 'player', 1)
+    base.board.player.push(hunger)
+
+    const result = resolveCombat(base, hunger.uid, { kind: 'hero', owner: 'ai' })
+    expect(result.state.board.player[0].collapsed).toBe(0)
+    expect(result.state.board.player[0].hp).toBe(6)
+  })
+
+  it('Oscilação não acontece quando o atacante morre no combate', () => {
+    const base = newGame(setup('copia-carbono', ['copia-carbono']))
+    base.turn = 2
+    const photon = creature('foton', 931, 'player', 0)
+    const guard = creature('sentinela', 932, 'ai', 1)
+    base.board.player.push(photon)
+    base.board.ai.push(guard)
+
+    const result = resolveCombat(base, photon.uid, { kind: 'creature', uid: guard.uid })
+    expect(result.state.board.player).toHaveLength(0)
+    expect(result.events.some((event) => event.t === 'oscillate')).toBe(false)
   })
 
   it('aplica vida do chefe, Blindagem, Núcleo, Arquivo e Linha de Montagem', () => {

@@ -8,7 +8,7 @@ export const CARDS: Record<string, CardDef> = {
     cost: 1,
     type: 'criatura',
     faces: [
-      { label: 'Raio', attack: 2, health: 1, keywords: ['veloz'] },
+      { label: 'Raio', attack: 2, health: 1, keywords: ['oscilacao'] },
       { label: 'Brilho', attack: 1, health: 2, keywords: [] },
     ],
     text: 'Entrega recados a 299.792 km/s. Nunca chegou atrasado; nunca chegou inteiro.',
@@ -60,7 +60,7 @@ export const CARDS: Record<string, CardDef> = {
     cost: 3,
     type: 'criatura',
     faces: [
-      { label: 'Vivo', attack: 4, health: 2, keywords: ['veloz'] },
+      { label: 'Vivo', attack: 4, health: 2, keywords: ['oscilacao'] },
       { label: 'Espectro', attack: 1, health: 6, keywords: ['barreira'] },
     ],
     text: 'Mascote não-oficial do Instituto. Oficialmente, duas mascotes.',
@@ -114,7 +114,7 @@ export const CARDS: Record<string, CardDef> = {
     type: 'criatura',
     faces: [
       { label: 'Horizonte', attack: 8, health: 6, keywords: ['barreira'] },
-      { label: 'Núcleo', attack: 6, health: 8, keywords: ['veloz'] },
+      { label: 'Núcleo', attack: 6, health: 8, keywords: ['oscilacao'] },
     ],
     text: 'O primeiro sujeito catalogado. O catálogo original está dentro dela.',
     bio: 'Tudo que cruza o horizonte vira memória. Inclusive três estagiários.',
@@ -157,7 +157,7 @@ export const CARDS: Record<string, CardDef> = {
     cost: 2,
     type: 'feitico',
     spell: 'tunel',
-    text: 'Um sujeito seu ganha Fantasma e Veloz. Ele pode atacar agora e fica Intangível até seu próximo turno.',
+    text: 'Um sujeito seu ganha Fantasma, pode atacar neste turno mesmo se acabou de entrar e fica Intangível até seu próximo turno.',
     bio: 'Por que contornar a parede se existe uma probabilidade de você já estar do outro lado?',
   },
   pulso: {

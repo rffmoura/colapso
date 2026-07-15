@@ -6,8 +6,14 @@ import { CharacterArt } from './characters'
 
 const KW_TIP: Record<Keyword, string> = {
   barreira: 'Barreira: os inimigos são obrigados a atacar este sujeito antes de qualquer outro alvo.',
-  veloz: 'Veloz: pode atacar no mesmo turno em que entra em campo.',
+  oscilacao: 'Oscilação: depois de atacar e sobreviver, muda para o outro estado sem recuperar Vida.',
   fantasma: 'Fantasma: ignora Barreira ao atacar. Quando é ativado, deixa o sujeito Intangível até o próximo turno dele.',
+}
+
+const KW_LABEL: Record<Keyword, string> = {
+  barreira: 'barreira',
+  oscilacao: 'oscilação',
+  fantasma: 'fantasma',
 }
 
 interface CardViewProps {
@@ -33,7 +39,8 @@ export function CardView({
   const isCreature = def.type === 'criatura'
 
   // revelação do colapso: pulso acelerado → carimbo OBSERVADO → linha ativa acesa
-  const [stage, setStage] = useState<'idle' | 'flicker' | 'stamp'>('idle')
+  const [stage, setStage] = useState<'idle' | 'flicker' | 'stamp' | 'oscillate'>('idle')
+  const [shift, setShift] = useState<{ from: 0 | 1; to: 0 | 1 } | null>(null)
   const prev = useRef<0 | 1 | null>(collapsed)
   useEffect(() => {
     const was = prev.current
@@ -47,6 +54,15 @@ export function CardView({
         clearTimeout(t2)
       }
     }
+    if (was !== null && collapsed !== null && was !== collapsed) {
+      setShift({ from: was, to: collapsed })
+      setStage('oscillate')
+      const timer = setTimeout(() => {
+        setStage('idle')
+        setShift(null)
+      }, 900)
+      return () => clearTimeout(timer)
+    }
   }, [collapsed])
 
   const showSuperposed = isCreature && (collapsed === null || stage === 'flicker')
@@ -56,6 +72,7 @@ export function CardView({
     `size-${size}`,
     showSuperposed ? 'superposed' : '',
     stage === 'flicker' ? 'collapsing-fast' : '',
+    stage === 'oscillate' ? 'oscillating' : '',
   ]
     .filter(Boolean)
     .join(' ')
@@ -93,8 +110,8 @@ export function CardView({
           {tempKeywords.length > 0 && (
             <div style={{ display: 'flex', gap: '0.25rem', justifyContent: 'center' }}>
               {tempKeywords.map((k) => (
-                <span key={k} className="kw kw-temp" data-tip={`${KW_TIP[k]} (só neste turno)`}>
-                  {k}
+                <span key={k} className="kw kw-temp" data-tip={`${KW_TIP[k]} (efeito temporário)`}>
+                  {KW_LABEL[k]}
                 </span>
               ))}
             </div>
@@ -124,6 +141,7 @@ export function CardView({
       )}
 
       {stage === 'stamp' && collapsed !== null && <StampFx face={collapsed} />}
+      {stage === 'oscillate' && shift && <OscillationFx name={def.name} from={shift.from} to={shift.to} />}
     </div>
   )
 }
@@ -145,12 +163,31 @@ function StateRow({
       <span className="state-name">{face.label}</span>
       {face.keywords.map((k) => (
         <span key={k} className="kw" data-tip={KW_TIP[k]}>
-          {k}
+          {KW_LABEL[k]}
         </span>
       ))}
       <span className="state-stats">
         <span className="atk">{face.attack}</span>/<span className="hp">{face.health}</span>
       </span>
+    </div>
+  )
+}
+
+function OscillationFx({ name, from, to }: { name: string; from: 0 | 1; to: 0 | 1 }) {
+  const fromLabel = from === 0 ? 'A' : 'B'
+  const toLabel = to === 0 ? 'A' : 'B'
+  return (
+    <div
+      className="oscillation-overlay"
+      role="status"
+      aria-label={`${name} oscilou do estado ${fromLabel} para o estado ${toLabel}`}
+    >
+      <div className="oscillation-mark">
+        <span>oscilação</span>
+        <strong className={`state-${from}`}>{fromLabel}</strong>
+        <b aria-hidden="true">→</b>
+        <strong className={`state-${to}`}>{toLabel}</strong>
+      </div>
     </div>
   )
 }

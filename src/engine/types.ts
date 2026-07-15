@@ -53,7 +53,7 @@ export interface RunState {
   rewardStep: 'draft' | 'equip'
 }
 
-export type Keyword = 'barreira' | 'veloz' | 'fantasma'
+export type Keyword = 'barreira' | 'oscilacao' | 'fantasma'
 
 export interface Face {
   label: string
@@ -101,7 +101,7 @@ export interface Creature {
   attacksUsed: number
   summonedTurn: number
   entangledWith: number | null
-  /** Túnel: Veloz dura o turno atual; Fantasma acompanha a proteção até o próximo turno */
+  /** Efeitos impressos temporariamente; hoje, Fantasma concedido pelo Túnel */
   tempKeywords: Keyword[]
   /** Fantasma recém-ativado: não pode ser alvo de ataques até o próximo turno do dono */
   ghostProtected: boolean
@@ -149,6 +149,7 @@ export type GameEvent =
   | { t: 'reshuffle'; owner: Owner }
   | { t: 'summon'; uid: number }
   | { t: 'collapse'; uid: number; face: 0 | 1; forced: boolean }
+  | { t: 'oscillate'; uid: number; from: 0 | 1; to: 0 | 1 }
   | { t: 'damage'; target: TargetRef; amount: number; source: 'normal' | 'secret' }
   | { t: 'death'; uid: number; defId: string; owner: Owner; source: 'normal' | 'secret' }
   | { t: 'entangle'; a: number; b: number }

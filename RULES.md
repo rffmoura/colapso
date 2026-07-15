@@ -58,8 +58,9 @@ Um Sujeito em superposição colapsa quando:
 - é afetado por Medição, Polarização, Decoerência ou pelo efeito de entrada do Auditor;
 - seu parceiro de Emaranhamento colapsa.
 
-O colapso comum escolhe A ou B com 50% de chance para cada estado. O estado obtido é permanente;
-um Sujeito já colapsado não pode mudar de estado.
+O colapso comum escolhe A ou B com 50% de chance para cada estado. O estado obtido permanece
+ativo e não pode ser escolhido novamente por Observar ou Protocolos. A única troca posterior é
+causada por Oscilação.
 
 ### Observar
 
@@ -92,12 +93,13 @@ seguida. Depois:
 | Palavra-chave | Regra |
 |---|---|
 | **Barreira** | Enquanto houver um inimigo atacável com Barreira, ataques sem Fantasma devem mirar uma Barreira. |
-| **Veloz** | O Sujeito pode atacar no mesmo turno em que entrou. |
+| **Oscilação** | Depois de atacar e sobreviver, o Sujeito muda para o outro estado. A Vida atual não aumenta e fica limitada ao máximo do novo estado. |
 | **Fantasma** | Ignora Barreira ao atacar. Quando ativado, também concede Intangível até o início do próximo turno do dono. |
 | **Intangível** | O Sujeito não pode ser alvo de ataques inimigos. Protocolos ainda causam dano, assim como o revide de um combate que ele próprio iniciou. |
 
 Palavras-chave impressas só funcionam depois que o estado correspondente colapsa. Fantasma
-continua permitindo ignorar Barreira após o período de Intangível terminar.
+continua permitindo ignorar Barreira após o período de Intangível terminar. Oscilação não é um
+novo colapso e, portanto, não se propaga por Emaranhamento.
 
 ## 6. Protocolos
 
@@ -108,7 +110,7 @@ Protocolos são resolvidos uma vez e depois permanecem no descarte.
 | **Medição** | 3 | Escolha A ou B de qualquer Sujeito em superposição, aliado ou inimigo. O estado é garantido. |
 | **Polarização** | 2 | Escolha A ou B de um Sujeito seu em superposição. O estado é garantido. |
 | **Emaranhamento** | 2 | Vincule um Sujeito seu a um inimigo que ainda não estejam vinculados. Quando um colapsa, o parceiro em superposição colapsa no mesmo estado; quando um morre, o outro sofre 2 de dano. |
-| **Túnel Quântico** | 2 | Um Sujeito seu recebe Veloz no turno atual e Fantasma até o início do seu próximo turno. Nesse período, ele também fica Intangível. |
+| **Túnel Quântico** | 2 | Um Sujeito seu ganha Fantasma até o início do próximo turno dele e fica Intangível nesse período. Se acabou de entrar, pode atacar no turno atual; um Sujeito que já atacou não recebe um ataque adicional. |
 | **Pulso de Decaimento** | 3 | Cause 3 de dano a qualquer Sujeito ou ao Observador inimigo. Um Sujeito em superposição colapsa antes do dano. |
 | **Decoerência** | 5 | Colapse aleatoriamente todos os Sujeitos inimigos em superposição e cause 2 de dano a cada inimigo em campo. |
 | **Requisição** | 1 | Compre 2 fichas. O limite de 8 fichas na mão continua valendo. |
@@ -189,6 +191,8 @@ Quando vários efeitos parecem acontecer juntos, use esta ordem:
 4. Resolva o dano de combate ou o dano direto.
 5. Aplique prevenções de morte antes de registrar morte ou fim de jogo.
 6. Após um ataque direto sobrevivido, Retaliação Q-88 pode atingir o atacante.
+7. Se o atacante ainda estiver vivo e seu estado tiver Oscilação, troque-o para o outro estado
+   sem recuperar Vida.
 
 ### Observar
 

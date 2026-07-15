@@ -122,7 +122,7 @@ export function decideAi(s: GameState): AiAction {
     return { kind: 'spell', handUid: flut.uid, spell: 'flutuacao', targets: [] }
   }
 
-  // 8. Túnel para dano letal por cima de Barreira
+  // 8. Túnel para atravessar Barreira ou adiantar uma ameaça recém-jogada
   const tun = playable.find((h) => getDef(h.defId).spell === 'tunel')
   if (tun) {
     const blocked = myBoard.find(
@@ -135,6 +135,12 @@ export function decideAi(s: GameState): AiAction {
     const playerHasBarrier = foeBoard.some((c) => keywordsOf(c).includes('barreira'))
     if (blocked && playerHasBarrier) {
       return { kind: 'spell', handUid: tun.uid, spell: 'tunel', targets: [{ kind: 'creature', uid: blocked.uid }] }
+    }
+    const fresh = myBoard
+      .filter((c) => c.summonedTurn === s.turn && c.attacksUsed === 0)
+      .sort((a, b) => expectedAttack(b) - expectedAttack(a))[0]
+    if (fresh && (expectedAttack(fresh) >= s.sides.player.coherence || expectedAttack(fresh) >= 3)) {
+      return { kind: 'spell', handUid: tun.uid, spell: 'tunel', targets: [{ kind: 'creature', uid: fresh.uid }] }
     }
   }
 
@@ -192,7 +198,7 @@ function faceTacticalValue(defId: string, face: 0 | 1): number {
   const state = getDef(defId).faces![face]
   const keywordValue = state.keywords.reduce((total, keyword) => {
     if (keyword === 'barreira') return total + 1.8
-    if (keyword === 'veloz') return total + 1.4
+    if (keyword === 'oscilacao') return total + 1.6
     return total + 2.6
   }, 0)
   return state.attack * 1.35 + state.health + keywordValue

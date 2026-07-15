@@ -52,7 +52,7 @@ erros de impressão. Evitar blur decorativo e superfícies translúcidas.
 2. Selo de custo mostarda dentro da carta.
 3. Janela de arte com retrato ilustrado em WebP, enquadrado para preservar o rosto na mão e na
    mesa.
-4. Duas linhas de estado: `A · Vivo · 4/2 · Veloz` e `B · Espectro · 1/6 · Barreira`.
+4. Duas linhas de estado: `A · Vivo · 4/2 · Oscilação` e `B · Espectro · 1/6 · Barreira`.
 5. Antes do colapso, A e B pulsam alternadamente; depois, apenas a linha ativa recebe ênfase.
 6. Vida atual aparece como selo separado e nunca substitui silenciosamente a Vida impressa.
 7. Rodapé contém identificação e tipo documental da ficha.
@@ -129,6 +129,8 @@ bordas devem inverter sua direção para nunca serem cortados pela viewport.
 ## Motion
 
 - **Colapso:** carimbo `OBSERVADO`, slam curto, tremor de papel e ativação da linha escolhida.
+- **Oscilação:** comprovante de troca A→B ou B→A sobre a ficha, acompanhado por dois tons
+  cruzados; a nova linha ativa precisa ficar evidente sem sugerir um novo colapso.
 - **Observar:** escolha A/B permanece legível durante toda a decisão; o resultado mostra 75% ou o
   desvio de 25%.
 - **Emaranhamento:** barbante de mural entre as fichas, com balanço discreto.

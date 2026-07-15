@@ -472,11 +472,12 @@ export function ManualOverlay() {
                 <dt>Palavras-chave</dt>
                 <dd>
                   Enquanto houver um inimigo com <strong>Barreira</strong>, seus ataques devem mirar
-                  nele. <strong>Veloz</strong> permite atacar no turno em que o Sujeito entra.{' '}
-                  <strong>Fantasma</strong> ignora Barreira ao atacar e, quando ativado, deixa o Sujeito
-                  Intangível até seu próximo turno. Nesse período ele não pode ser alvo de ataques, mas
-                  ainda sofre Protocolos e revides. Habilidades impressas em um estado só funcionam
-                  após o colapso.
+                  nele. <strong>Oscilação</strong> troca um Sujeito sobrevivente para o outro estado
+                  depois que ele ataca, sem recuperar Vida. <strong>Fantasma</strong> ignora Barreira ao
+                  atacar e, quando ativado, deixa o Sujeito Intangível até seu próximo turno. Nesse
+                  período ele não pode ser alvo de ataques, mas ainda sofre Protocolos e revides. O{' '}
+                  <strong>Túnel Quântico</strong> também permite que um Sujeito recém-jogado ataque no
+                  mesmo turno. Habilidades impressas só funcionam após o colapso.
                 </dd>
               </div>
               <div>

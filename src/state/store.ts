@@ -21,7 +21,7 @@ import {
   entangleCreatures,
   findCreature,
   finishProtocol,
-  grantTempKeywords,
+  grantTunnel,
   influenceCreature,
   keywordsOf,
   newGame,
@@ -248,6 +248,11 @@ function apply(step: StepResult): GameEvent[] {
         }
         break
       }
+      case 'oscillate':
+        sfx.oscillate()
+        queueMemo('oscilacao')
+        pushFx(`c-${e.uid}`, `${e.from === 0 ? 'A' : 'B'} → ${e.to === 0 ? 'A' : 'B'}`, 'info')
+        break
       case 'death':
         if (e.source === 'secret') setTimeout(() => sfx.death(), SECRET_DAMAGE_DELAY_MS + 120)
         else sfx.death()
@@ -403,8 +408,8 @@ async function spellSeq(owner: Owner, handUid: number, spell: SpellKind, targets
       break
     case 'tunel':
       if (targets[0]?.kind === 'creature') {
-        apply(grantTempKeywords(state.game, targets[0].uid, ['fantasma', 'veloz']))
-        pushFx(keyOf(targets[0]), 'intangível', 'info')
+        apply(grantTunnel(state.game, targets[0].uid))
+        pushFx(keyOf(targets[0]), 'pronto · intangível', 'info')
         await wait(500)
       }
       break

@@ -24,13 +24,13 @@ npm run build    # build de produção em dist/
 Cada ficha de sujeito tem **dois estados** — a linha **A** (vermelha) e a linha **B** (azul) —
 com ataque, vida e habilidades próprios:
 
-> **O Gato** · Sujeito nº 13 — `A · Vivo · 4/2 · Veloz` ⟷ `B · Espectro · 1/6 · Barreira`
+> **O Gato** · Sujeito nº 13 — `A · Vivo · 4/2 · Oscilação` ⟷ `B · Espectro · 1/6 · Barreira`
 
 - **Superposição** — em campo, o sujeito é os dois estados ao mesmo tempo (e não tem
   palavra-chave nenhuma). As duas linhas pulsam na ficha.
 - **Colapso** — ao atacar ou ser atacado, um carimbo `OBSERVADO` sorteia um dos dois estados
-  (50/50). Para sempre. Medição garante o estado de qualquer Sujeito por 3 Qubits; Polarização
-  faz o mesmo em um Sujeito próprio por 2.
+  (50/50). Normalmente ele permanece ativo; Oscilação é a exceção. Medição garante o estado de
+  qualquer Sujeito por 3 Qubits; Polarização faz o mesmo em um Sujeito próprio por 2.
 - **Emaranhamento** — um barbante vermelho liga um sujeito seu a um inimigo: colapsam juntos
   (A com A, B com B) e, quando um morre, o outro sofre 2 de dano de eco.
 - **Observar** — poder de herói (2 qubits, 1x/turno): escolha A ou B para qualquer sujeito. A
@@ -59,7 +59,7 @@ Plantão; nenhuma progressão é gravada.
 | Campo | Até 6 sujeitos por lado; cada um ataca 1x por turno |
 | Mão | Até 8 fichas; compras excedentes são enviadas ao descarte |
 | Observar | 2 Qubits, 1x por turno: escolha A/B de qualquer Sujeito em 75/25 |
-| Palavras-chave | **Barreira** (atacado primeiro) · **Veloz** (ataca ao entrar) · **Fantasma** (ignora Barreira e concede Intangível temporário) |
+| Palavras-chave | **Barreira** (atacado primeiro) · **Oscilação** (troca de estado após atacar e sobreviver) · **Fantasma** (ignora Barreira e concede Intangível temporário) |
 
 ## Controles
 
@@ -79,15 +79,15 @@ Plantão; nenhuma progressão é gravada.
 
 | Sujeito | Ficha | Estados |
 |---|---|---|
-| **Fóton** | O Estafeta · nº 01 | Raio 2/1 Veloz ⟷ Brilho 1/2 |
+| **Fóton** | O Estafeta · nº 01 | Raio 2/1 Oscilação ⟷ Brilho 1/2 |
 | **Neutrina** | A Intangível · nº 02 | Fase 1/1 Fantasma ⟷ Massa 1/3 |
 | **Sentinela Q-88** | Segurança do Arquivo | Escudo 1/4 Barreira ⟷ Lança 3/2 |
 | **Elétron** | O Inquieto · nº 03 | Excitado 3/1 ⟷ Estável 2/3 |
-| **O Gato** | Sujeito nº 13 · não abra a caixa | Vivo 4/2 Veloz ⟷ Espectro 1/6 Barreira |
+| **O Gato** | Sujeito nº 13 · não abra a caixa | Vivo 4/2 Oscilação ⟷ Espectro 1/6 Barreira |
 | **O Auditor** | Fiscal de Realidades | Vistoria 3/4 ⟷ Autuação 4/3 · colapsa um inimigo ao entrar |
 | **Madame Onda** | Regente do Salão de Interferência | Crista 5/3 ⟷ Vale 3/5 Barreira |
 | **Quasar** | O Farol · nº 07 | Jato 6/4 ⟷ Halo 4/6 |
-| **A Fome** | Sujeito nº 00 · contenção máxima | Horizonte 8/6 Barreira ⟷ Núcleo 6/8 Veloz |
+| **A Fome** | Sujeito nº 00 · contenção máxima | Horizonte 8/6 Barreira ⟷ Núcleo 6/8 Oscilação |
 
 Mais 7 **Protocolos**: Medição, Polarização, Emaranhamento, Túnel Quântico, Pulso de Decaimento,
 Decoerência e Requisição. Custos, alvos e ordem de resolução estão em [RULES.md](RULES.md).
