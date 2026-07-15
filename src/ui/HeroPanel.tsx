@@ -63,6 +63,10 @@ export function HeroPanel({ owner }: { owner: Owner }) {
   const powerReady = isPlayer && !side.heroPowerUsed && side.qubits >= HERO_POWER_COST
   const powerArmed = st.selection?.type === 'heropower'
   const lastRevealedSecret = side.revealedSecrets.at(-1)
+  const coherenceTip = isPlayer
+    ? 'Coerência: sua vida. Chegou a zero, acabou o plantão.'
+    : 'Coerência do Autômato: zere para vencer.'
+  const qubitsTip = `Qubits: energia do turno (${side.qubits}/${side.maxQubits}). Primeiro turno: ${openingQubits}; depois, o máximo cresce 1 por turno.`
   // no painel do topo (Autômato), tooltips abrem para baixo para não sair da tela
   const tipDown = isPlayer ? '' : ' tip-down'
 
@@ -92,11 +96,9 @@ export function HeroPanel({ owner }: { owner: Owner }) {
         <div className="hero-name">{isPlayer ? 'Você · Observador' : aiName}</div>
         <div
           className={`hero-readout${side.coherence <= 8 ? ' low' : ''}${tipDown}`}
-          data-tip={
-            isPlayer
-              ? 'Coerência: sua vida. Chegou a zero, acabou o plantão.'
-              : 'Coerência do Autômato: zere para vencer.'
-          }
+          data-tip={coherenceTip}
+          aria-label={coherenceTip}
+          tabIndex={0}
         >
           <span className="hero-coherence">{side.coherence}</span>
           <span className="hero-readout-copy">
@@ -106,7 +108,9 @@ export function HeroPanel({ owner }: { owner: Owner }) {
         </div>
         <div
           className={`qubit-meter${tipDown}`}
-          data-tip={`Qubits: energia do turno (${side.qubits}/${side.maxQubits}). Primeiro turno: ${openingQubits}; depois, o máximo cresce 1 por turno.`}
+          data-tip={qubitsTip}
+          aria-label={qubitsTip}
+          tabIndex={0}
         >
           <div className="qubit-meter-head">
             <span>qubits</span>
@@ -119,7 +123,7 @@ export function HeroPanel({ owner }: { owner: Owner }) {
           </div>
         </div>
       </div>
-      <div className={`deck-count${tipDown}`} data-tip="Fichas na mão.">
+      <div className={`deck-count${tipDown}`} data-tip="Fichas na mão." aria-label="Fichas na mão." tabIndex={0}>
         <span>mão</span>
         <b>{side.hand.length}</b>
         <small>fichas</small>

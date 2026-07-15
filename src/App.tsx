@@ -21,6 +21,16 @@ export default function App() {
 
   return (
     <div className="paper-grain paper-vignette">
+      <div className="orientation-notice" role="dialog" aria-modal="true" aria-label="Orientação da bancada">
+        <div className="orientation-ticket">
+          <span>orientação da bancada</span>
+          <div className="orientation-device" aria-hidden="true">
+            <i />
+          </div>
+          <strong>Gire o aparelho</strong>
+          <p>O Plantão foi preparado para jogar com a tela na horizontal.</p>
+        </div>
+      </div>
       <div className="top-controls">
         <button className="btn-icon" onClick={toggleManual} data-tip="Manual do Observador" aria-label="Manual">
           ?
