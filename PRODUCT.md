@@ -2,47 +2,138 @@
 
 ## O que é
 
-"COLAPSO" é um jogo de cartas web single-player (jogador vs IA). Você é o novo **Observador de
-plantão do Instituto Meia-Vida**, um laboratório dos anos 1950 que cataloga entidades quânticas.
-As fichas do arquivo descrevem **sujeitos** que existem em **superposição** (dois estados
-possíveis) e só **colapsam** num estado definitivo quando observados — ao atacar, ser atacados ou
-por protocolos de medição. Sujeitos podem ser **emaranhados**: colapsam juntos e compartilham a
-dor. Vence quem zerar a **Coerência** do oponente (o Autômato, a máquina burocrática do turno da
-noite).
+**COLAPSO** é um card game web single-player em que um Observador humano enfrenta o Autômato do
+Instituto Meia-Vida. Os Sujeitos entram em campo em superposição, com dois estados possíveis, e
+só assumem Ataque, Vida e habilidades definitivos quando colapsam.
+
+A experiência atual é um **Plantão contínuo** de quatro duelos: três setores e uma batalha final
+contra o Autômato Supervisor. Entre confrontos, a máquina recebe Diretrizes cumulativas e o
+jogador amplia seu arsenal de Contramedidas.
+
+O jogo é 100% front-end, sem backend ou conta. Os dois lados usam cópias da mesma lista fixa de
+deck, com IA local e sessões curtas. Clareza, personalidade e decisões táticas têm prioridade.
 
 ## Registro
 
 register: brand
 
-O jogo é o produto; a sensação visual e as animações são requisito de primeira classe.
+O jogo é o produto; regras, sensação visual, personagens, animações e didática são requisitos de
+primeira classe.
 
-## Lore (curto, canônico)
+## Lore canônica
 
 O Instituto Meia-Vida estuda o que o universo faz quando ninguém está olhando. Toda noite, um
-Observador humano e o Autômato do Instituto disputam a custódia dos sujeitos do arquivo. Observar
-é interferir; interferir é vencer.
+Observador humano e o Autômato disputam a custódia dos Sujeitos do Arquivo. Observar é interferir;
+interferir é vencer.
 
-## Usuários
+O jogador é o Observador responsável pelo turno da noite. O Autômato representa a burocracia do
+Instituto: registra, mede, arquiva e reage automaticamente a qualquer desvio de protocolo.
 
-Jogadores casuais de card games (Hearthstone, Marvel Snap, Balatro), partidas de 5–10 min,
-desktop. **A v1 foi considerada confusa**: a v2 precisa ensinar jogando — tooltips de
-palavras-chave, memos contextuais na primeira ocorrência de cada mecânica, manual acessível.
-Nunca exigir leitura prévia.
+## Público e sessão
 
-## Princípios estratégicos
+- Jogadores casuais de card games como Hearthstone, Marvel Snap e Balatro.
+- Partidas desejadas de aproximadamente 6–9 minutos por duelo.
+- Experiência web desktop-first, com interface responsiva para telas menores.
+- Regras compreensíveis sem exigir leitura prévia de documentação externa.
 
-1. A dualidade superposição/colapso é a identidade; o visual (dois carimbos, vermelho/teal) deve
-   torná-la óbvia sem texto.
-2. Personagens antes de símbolos: cada carta é alguém (O Gato, O Auditor, Madame Onda...), com
-   arte própria, bio e voz.
-3. Legibilidade vence espetáculo: nome nunca coberto, estados sempre soletrados, dano sempre
-   numerado.
-4. Nunca um turno morto: refil de mão a cada turno, deck reembaralha.
-5. Anti-referências: cosmos/neon genérico de sci-fi, mesa de madeira de TCG, HUD de filme,
-   Balatro-clone.
+A primeira versão foi considerada confusa. O produto deve ensinar jogando: textos diretos,
+tooltips, Memorandos do Supervisor na primeira ocorrência e um Manual do Observador curto e
+consultável.
 
-## Escopo v2
+## Promessa central
 
-Partida completa vs IA, deck fixo compartilhado (16 fichas), refil de mão (compra até 5/turno),
-descarte que reembaralha, tooltips + memos do Supervisor + Manual do Observador, arte vetorial
-própria por personagem, animações temáticas (carimbo, barbante, telegrama). Sem coleção/PvP.
+Cada Sujeito é duas possibilidades táticas até alguém interferir. O jogador decide quando aceitar
+o acaso, quando influenciá-lo e quando gastar mais recursos para garantir um estado.
+
+Essa promessa se apoia em três níveis de controle:
+
+1. **Colapso comum:** A ou B em 50/50, sem custo adicional.
+2. **Observar:** escolha desejada em 75/25, por 2 Qubits, uma vez por turno.
+3. **Protocolos:** Polarização garante um estado aliado por 2 Qubits; Medição garante o estado de
+   qualquer Sujeito por 3.
+
+## Loop do duelo
+
+1. Receba Qubits e reabasteça a mão.
+2. Jogue Sujeitos em superposição e Protocolos de efeito imediato.
+3. Ataque, provoque colapsos e manipule A/B com Observar.
+4. Antecipe a Contramedida inimiga oculta e planeje ao redor da sua.
+5. Reduza a Coerência adversária a zero antes que a sua seja zerada.
+
+O combate é persistente: Sujeitos sobreviventes mantêm o dano. O Arquivo reembaralha o descarte
+quando esvazia, e o refil garante pelo menos uma compra por turno para evitar turnos mortos.
+
+## Plantão contínuo
+
+O Plantão transforma duelos isolados em uma sequência curta de risco crescente:
+
+- Antes do primeiro duelo, o jogador escolhe uma de três Contramedidas.
+- Cada lado equipa uma Contramedida sem custo; a inimiga fica confidencial até disparar.
+- Após cada uma das três primeiras vitórias, uma nova Diretriz fortalece o Autômato.
+- Na mesma recompensa, o jogador escolhe uma Contramedida ainda não adquirida e depois equipa
+  uma carta de seu arsenal para o próximo setor.
+- Diretrizes não se repetem e permanecem cumulativas durante o Plantão.
+- O Supervisor começa com 30 de Coerência e duas Contramedidas diferentes, armadas em sequência.
+- Uma derrota encerra a tentativa e apaga toda a progressão da sequência.
+
+Não existe metaprogressão ou persistência do Plantão em `localStorage`. Apenas as preferências
+dos Memorandos didáticos permanecem no navegador.
+
+## Sistemas estratégicos
+
+### Superposição e colapso
+
+A dualidade A/B é a identidade do jogo. Antes do colapso, nenhuma palavra-chave impressa está
+ativa. Atacar, ser atacado e certos Protocolos provocam o estado definitivo.
+
+### Contramedidas
+
+São reações automáticas, gratuitas e de uso único. A carta própria fica visível para permitir
+planejamento; a inimiga comunica apenas que existe uma ameaça. Depois do disparo, ela permanece
+visível e consultável. Efeitos secretos não iniciam outras Contramedidas.
+
+### Diretrizes
+
+São modificadores cumulativos da IA: mais Coerência, mais energia, mais fichas, influência mais
+precisa ou desconto de custo. Devem elevar a dificuldade sem alterar o deck ou criar regras
+invisíveis durante o duelo; por isso são mostradas no briefing.
+
+### Fantasma e Intangível
+
+Fantasma ignora Barreira quando o Sujeito ataca. Ao ser ativado, também concede Intangível até o
+próximo turno do dono: ataques inimigos não podem escolhê-lo, mas Protocolos e revides ainda o
+atingem.
+
+## Princípios de produto
+
+1. **A dualidade deve ser visível:** A e B precisam ser compreendidos antes de qualquer texto
+   avançado.
+2. **Agência sobre acaso:** escolhas devem alterar probabilidades ou garantir resultados, não
+   apenas repetir o mesmo sorteio.
+3. **Informação parcial justa:** a IA pode reconhecer uma ameaça oculta, mas nunca conhecer a
+   identidade da Contramedida do jogador.
+4. **Personagens antes de símbolos:** cada Sujeito tem nome, retrato, bio e voz própria.
+5. **Legibilidade vence espetáculo:** nomes, estados, Vida, dano, custos e gatilhos nunca podem ser
+   encobertos.
+6. **Nunca um turno morto:** refil, reembaralhamento e curva de Qubits mantêm opções disponíveis.
+7. **Dificuldade explicável:** toda Diretriz é mostrada antes do duelo em que passa a valer.
+8. **Sem reação infinita:** efeitos de Contramedida não ativam outras Contramedidas.
+
+## Escopo atual
+
+- Nove Sujeitos e sete Protocolos; Arquivo fixo de 20 fichas por lado.
+- Sete Contramedidas e cinco Diretrizes.
+- IA local com decisões baseadas somente em informações públicas e regras permitidas.
+- Quatro duelos, recompensa entre setores, arsenal, chefe e reinício da sequência.
+- Manual, tooltips, Memorandos contextuais, animações e áudio sintetizado.
+- Sem coleção, deckbuilding, PvP, backend, conta ou progressão permanente.
+
+## Metas de playtest
+
+- Observar usado em 25–45% dos turnos elegíveis.
+- Escolhas de A/B contextuais, sem uma face universalmente correta.
+- Duelo médio de 6–9 minutos.
+- Vitória do jogador próxima de 45–55% no primeiro setor.
+- Contramedidas compreensíveis depois do primeiro disparo e relevantes para decisões futuras.
+
+As regras numéricas e a ordem de resolução ficam em [RULES.md](RULES.md).

@@ -7,8 +7,8 @@ anos 1950 que cataloga entidades quânticas. Toda noite, um Observador humano (v
 da casa disputam a custódia dos sujeitos do arquivo — criaturas que são duas coisas ao mesmo
 tempo até serem observadas. Observar é interferir; interferir é vencer.
 
-**Jogo 100% front-end**: sem backend, sem assets externos. Arte vetorial autoral, sons
-sintetizados em tempo real e visual de papel impresso dos anos 50.
+**Jogo 100% front-end**: sem backend. Retratos ilustrados dos Sujeitos, pranchas vetoriais dos
+Protocolos, sons sintetizados em tempo real e visual de papel impresso dos anos 50.
 
 ## Como rodar
 
@@ -29,7 +29,8 @@ com ataque, vida e habilidades próprios:
 - **Superposição** — em campo, o sujeito é os dois estados ao mesmo tempo (e não tem
   palavra-chave nenhuma). As duas linhas pulsam na ficha.
 - **Colapso** — ao atacar ou ser atacado, um carimbo `OBSERVADO` sorteia um dos dois estados
-  (50/50). Para sempre. O Protocolo Medição permite escolher o estado de qualquer sujeito.
+  (50/50). Para sempre. Medição garante o estado de qualquer Sujeito por 3 Qubits; Polarização
+  faz o mesmo em um Sujeito próprio por 2.
 - **Emaranhamento** — um barbante vermelho liga um sujeito seu a um inimigo: colapsam juntos
   (A com A, B com B) e, quando um morre, o outro sofre 2 de dano de eco.
 - **Observar** — poder de herói (2 qubits, 1x/turno): escolha A ou B para qualquer sujeito. A
@@ -39,7 +40,8 @@ com ataque, vida e habilidades próprios:
 
 Cada tentativa possui três setores e o **Autômato Supervisor** como chefe. Você começa escolhendo
 uma de três Contramedidas, cartas especiais que entram armadas gratuitamente e disparam uma vez
-por duelo. A carta inimiga permanece confidencial até o gatilho.
+por duelo. A carta inimiga permanece confidencial até o gatilho; depois de revelada, continua no
+painel e pode ser consultada novamente.
 
 Após cada vitória regular, uma Diretriz cumulativa fortalece a IA e uma nova Contramedida é
 adicionada ao seu arsenal. Apenas uma pode ser equipada por duelo. O chefe começa com 30 de
@@ -50,12 +52,14 @@ Plantão; nenhuma progressão é gravada.
 
 | Conceito | Regra |
 |---|---|
-| Objetivo | Zerar a **Coerência** (25) do Autômato |
+| Objetivo | Zerar a **Coerência** do Autômato: 25 nos setores e 30 no Supervisor, antes de Diretrizes |
 | Energia | **Qubits**: +1 de máximo por turno (até 8), recarregam todo turno |
 | Compra | **Refil**: no início do turno, compre até ter 5 fichas (mínimo 1) |
 | Arquivo | Deck de 20; quando esvazia, o **descarte volta embaralhado** — nunca há turno morto |
 | Campo | Até 6 sujeitos por lado; cada um ataca 1x por turno |
-| Palavras-chave | **Barreira** (atacado primeiro) · **Veloz** (ataca ao entrar) · **Fantasma** (ignora Barreira e concede Intangível até o próximo turno) |
+| Mão | Até 8 fichas; compras excedentes são enviadas ao descarte |
+| Observar | 2 Qubits, 1x por turno: escolha A/B de qualquer Sujeito em 75/25 |
+| Palavras-chave | **Barreira** (atacado primeiro) · **Veloz** (ataca ao entrar) · **Fantasma** (ignora Barreira e concede Intangível temporário) |
 
 ## Controles
 
@@ -85,8 +89,8 @@ Plantão; nenhuma progressão é gravada.
 | **Quasar** | O Farol · nº 07 | Jato 6/4 ⟷ Halo 4/6 |
 | **A Fome** | Sujeito nº 00 · contenção máxima | Horizonte 8/6 Barreira ⟷ Núcleo 6/8 Veloz |
 
-Mais 7 **Protocolos** (feitiços): Medição, Polarização, Emaranhamento, Túnel Quântico, Pulso de
-Decaimento, Decoerência e Requisição.
+Mais 7 **Protocolos**: Medição, Polarização, Emaranhamento, Túnel Quântico, Pulso de Decaimento,
+Decoerência e Requisição. Custos, alvos e ordem de resolução estão em [RULES.md](RULES.md).
 
 ## Stack e arquitetura
 
@@ -104,7 +108,7 @@ src/
 ├── state/
 │   └── store.ts     # orquestrador: sequencia turnos, animações e sons
 ├── ui/
-│   ├── characters.tsx   # personagens em SVG artesanal (com idle animations)
+│   ├── characters.tsx   # retratos dos Sujeitos + pranchas vetoriais dos Protocolos
 │   ├── CardView.tsx     # anatomia da ficha de catálogo
 │   ├── GameBoard.tsx    # a bancada do Instituto
 │   ├── Piles.tsx        # pilhas de arquivo/descarte + fantasmas de compra
@@ -114,7 +118,11 @@ src/
     └── sfx.ts       # efeitos sonoros sintetizados via WebAudio
 ```
 
-Detalhes de produto e direção de arte em [PRODUCT.md](PRODUCT.md) e [DESIGN.md](DESIGN.md).
+## Documentação
+
+- [RULES.md](RULES.md) — regras canônicas, custos, efeitos e ordem de resolução.
+- [PRODUCT.md](PRODUCT.md) — visão do produto, pilares, escopo e metas de playtest.
+- [DESIGN.md](DESIGN.md) — linguagem visual, componentes, motion e responsividade.
 
 ## Roteiro
 
