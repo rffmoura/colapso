@@ -21,4 +21,35 @@ describe('informação oculta da IA', () => {
     second.sides.player.activeSecret = { id: 'observador-observado' }
     expect(decideAi(first)).toEqual(decideAi(second))
   })
+
+  it('Medição escolhe a face taticamente pior de um sujeito inimigo', () => {
+    const state = newGame(setup)
+    state.active = 'ai'
+    state.sides.ai.hand = [{ uid: 700, defId: 'medicao' }]
+    state.sides.ai.qubits = 3
+    state.sides.ai.maxQubits = 3
+    state.board.ai = []
+    state.board.player = [
+      {
+        uid: 701,
+        defId: 'gato',
+        owner: 'player',
+        collapsed: null,
+        hp: 0,
+        attacksUsed: 0,
+        summonedTurn: 0,
+        entangledWith: null,
+        tempKeywords: [],
+        ghostProtected: false,
+      },
+    ]
+
+    expect(decideAi(state)).toEqual({
+      kind: 'spell',
+      handUid: 700,
+      spell: 'medir',
+      targets: [{ kind: 'creature', uid: 701 }],
+      face: 0,
+    })
+  })
 })

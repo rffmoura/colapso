@@ -136,8 +136,8 @@ function Medicao() {
         <path d="M84 41 H96 M84 83 H96" strokeWidth="1.1" />
       </g>
       <path d="M31 99 H53 L59 94 L65 102 L72 97 H108 L114 94 L121 100 H149" fill="none" stroke={PURPLE} strokeWidth="1.5" />
-      <text x="34" y="43" fontFamily="var(--font-type)" fontSize="6" fill={INK} opacity="0.7">50</text>
-      <text x="136" y="43" fontFamily="var(--font-type)" fontSize="6" fill={INK} opacity="0.7">50</text>
+      <text x="34" y="43" fontFamily="var(--font-display)" fontSize="8" fill={RED}>A</text>
+      <text x="136" y="43" fontFamily="var(--font-display)" fontSize="8" fill={TEAL}>B</text>
     </ProtocolPlate>
   )
 }

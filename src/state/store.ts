@@ -63,6 +63,7 @@ export type Selection =
   | { type: 'attacker'; uid: number }
   | { type: 'spell'; handUid: number; spell: SpellKind; collected: TargetRef[] }
   | { type: 'polarizeFace'; handUid: number; targetUid: number }
+  | { type: 'measureFace'; handUid: number; targetUid: number }
   | { type: 'influenceFace'; targetUid: number }
   | { type: 'heropower' }
   | null
@@ -354,7 +355,9 @@ async function spellSeq(owner: Owner, handUid: number, spell: SpellKind, targets
   if (state.game.winner) return
   switch (spell) {
     case 'medir':
-      if (targets[0]?.kind === 'creature') await collapseWithDrama(targets[0].uid)
+      if (targets[0]?.kind === 'creature' && face !== undefined) {
+        await collapseWithDrama(targets[0].uid, face)
+      }
       break
     case 'polarizar':
       if (targets[0]?.kind === 'creature') await collapseWithDrama(targets[0].uid, face)
@@ -368,7 +371,7 @@ async function spellSeq(owner: Owner, handUid: number, spell: SpellKind, targets
     case 'tunel':
       if (targets[0]?.kind === 'creature') {
         apply(grantTempKeywords(state.game, targets[0].uid, ['fantasma', 'veloz']))
-        pushFx(keyOf(targets[0]), 'fantasma + veloz', 'info')
+        pushFx(keyOf(targets[0]), 'intangível', 'info')
         await wait(500)
       }
       break
@@ -603,6 +606,10 @@ export function clickCreature(uid: number) {
       return
     }
     if (c.owner === 'ai') {
+      if (c.ghostProtected) {
+        pushFx(`c-${uid}`, 'intangível', 'info')
+        return
+      }
       // alvo inimigo inválido: se for a Barreira que impede, treme os bloqueadores
       barrierBlockFeedback(sel.uid)
       return
@@ -662,6 +669,10 @@ function clickTarget(target: TargetRef) {
       set({ selection: { ...sel, collected } })
       return
     }
+    if (sel.spell === 'medir' && target.kind === 'creature') {
+      set({ selection: { type: 'measureFace', handUid: sel.handUid, targetUid: target.uid } })
+      return
+    }
     if (sel.spell === 'polarizar' && target.kind === 'creature') {
       // escolher a face acontece inline, sobre a criatura
       set({ selection: { type: 'polarizeFace', handUid: sel.handUid, targetUid: target.uid } })
@@ -682,6 +693,17 @@ export function choosePolarizeFace(face: 0 | 1) {
   set({ busy: true, selection: null })
   void (async () => {
     await spellSeq('player', sel.handUid, 'polarizar', [{ kind: 'creature', uid: sel.targetUid }], face)
+    set({ busy: false })
+    await checkEnd()
+  })()
+}
+
+export function chooseMeasureFace(face: 0 | 1) {
+  const sel = state.selection
+  if (sel?.type !== 'measureFace') return
+  set({ busy: true, selection: null })
+  void (async () => {
+    await spellSeq('player', sel.handUid, 'medir', [{ kind: 'creature', uid: sel.targetUid }], face)
     set({ busy: false })
     await checkEnd()
   })()
@@ -825,6 +847,7 @@ if (import.meta.env.DEV && typeof window !== 'undefined') {
         summonedTurn: 0,
         entangledWith: null,
         tempKeywords: [],
+        ghostProtected: face !== undefined && def.faces![face].keywords.includes('fantasma'),
       })
       set({ game: s })
     },

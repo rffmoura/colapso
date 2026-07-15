@@ -7,7 +7,7 @@ import { CharacterArt } from './characters'
 const KW_TIP: Record<Keyword, string> = {
   barreira: 'Barreira: os inimigos são obrigados a atacar este sujeito antes de qualquer outro alvo.',
   veloz: 'Veloz: pode atacar no mesmo turno em que entra em campo.',
-  fantasma: 'Fantasma: ignora Barreira; pode atacar qualquer alvo, inclusive o Observador inimigo.',
+  fantasma: 'Fantasma: ignora Barreira ao atacar. Quando é ativado, deixa o sujeito Intangível até o próximo turno dele.',
 }
 
 interface CardViewProps {
@@ -16,10 +16,19 @@ interface CardViewProps {
   hp?: number
   size: 'hand' | 'board'
   tempKeywords?: Keyword[]
+  ghostProtected?: boolean
   showCost?: boolean
 }
 
-export function CardView({ defId, collapsed = null, hp, size, tempKeywords = [], showCost = false }: CardViewProps) {
+export function CardView({
+  defId,
+  collapsed = null,
+  hp,
+  size,
+  tempKeywords = [],
+  ghostProtected = false,
+  showCost = false,
+}: CardViewProps) {
   const def = getDef(defId)
   const isCreature = def.type === 'criatura'
 
@@ -67,6 +76,15 @@ export function CardView({ defId, collapsed = null, hp, size, tempKeywords = [],
           </div>
         )}
       </div>
+
+      {ghostProtected && (
+        <span
+          className="ghost-protection"
+          data-tip="Intangível: não pode ser alvo de ataques inimigos até o início do seu próximo turno. Protocolos e revides ainda causam dano."
+        >
+          intangível
+        </span>
+      )}
 
       {isCreature && (
         <div className="state-rows">

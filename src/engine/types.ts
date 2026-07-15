@@ -101,8 +101,10 @@ export interface Creature {
   attacksUsed: number
   summonedTurn: number
   entangledWith: number | null
-  /** limpas no fim do turno do dono (Túnel Quântico) */
+  /** Túnel: Veloz dura o turno atual; Fantasma acompanha a proteção até o próximo turno */
   tempKeywords: Keyword[]
+  /** Fantasma recém-ativado: não pode ser alvo de ataques até o próximo turno do dono */
+  ghostProtected: boolean
 }
 
 export interface HandCard {

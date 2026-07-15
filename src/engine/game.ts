@@ -76,7 +76,7 @@ export function canAttack(s: GameState, c: Creature): boolean {
 /** Alvos válidos de ataque para uma criatura (regra da Barreira) */
 export function validAttackTargets(s: GameState, attacker: Creature): TargetRef[] {
   const enemy = other(attacker.owner)
-  const enemyBoard = s.board[enemy]
+  const enemyBoard = s.board[enemy].filter((c) => !c.ghostProtected)
   const barriers = enemyBoard.filter((c) => keywordsOf(c).includes('barreira'))
   const ghost = keywordsOf(attacker).includes('fantasma')
   if (barriers.length > 0 && !ghost) {
@@ -185,6 +185,8 @@ function doCollapse(
   const resolved: 0 | 1 = face ?? (roll < bias ? 0 : 1)
   c.collapsed = resolved
   c.hp = def.faces![resolved].health
+  // Fantasma pode vir da face revelada ou ter sido concedido por Túnel antes do colapso.
+  c.ghostProtected = keywordsOf(c).includes('fantasma')
   ev.push({ t: 'collapse', uid, face: resolved, forced })
   // parceiro emaranhado colapsa junto, no mesmo índice
   if (c.entangledWith !== null) {
@@ -294,7 +296,11 @@ export function startTurn(prev: GameState): StepResult {
   side.heroPowerUsed = false
   side.cardsPlayedThisTurn = 0
   side.creaturesPlayedThisTurn = 0
-  for (const c of s.board[s.active]) c.attacksUsed = 0
+  for (const c of s.board[s.active]) {
+    c.attacksUsed = 0
+    c.tempKeywords = []
+    c.ghostProtected = false
+  }
   ev.push({ t: 'turn', owner: s.active, turn: s.turn })
   // refil: compra até HAND_REFILL cartas (sempre ao menos 1)
   const need = Math.max(1, HAND_REFILL - side.hand.length)
@@ -305,7 +311,9 @@ export function startTurn(prev: GameState): StepResult {
 export function endTurn(prev: GameState): StepResult {
   const s = clone(prev)
   const ev: GameEvent[] = []
-  for (const c of s.board[s.active]) c.tempKeywords = []
+  for (const c of s.board[s.active]) {
+    c.tempKeywords = c.tempKeywords.filter((keyword) => keyword === 'fantasma' && c.ghostProtected)
+  }
   const ending = s.active
   const defender = other(ending)
   if (s.sides[ending].qubits >= 3 && triggerSecret(s, defender, 'residuo-energia', ev)) {
@@ -342,6 +350,7 @@ export function playCreature(prev: GameState, owner: Owner, handUid: number): St
     summonedTurn: s.turn,
     entangledWith: null,
     tempKeywords: [],
+    ghostProtected: false,
   }
   s.board[owner].push(creature)
   side.creaturesPlayedThisTurn += 1
@@ -432,6 +441,7 @@ export function grantTempKeywords(prev: GameState, uid: number, kws: Keyword[]):
   const c = findCreature(s, uid)
   if (!c) return { state: prev, events: [] }
   c.tempKeywords = [...new Set([...c.tempKeywords, ...kws])]
+  if (kws.includes('fantasma')) c.ghostProtected = true
   return { state: s, events: [] }
 }
 

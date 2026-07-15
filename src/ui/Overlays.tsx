@@ -113,7 +113,10 @@ export function TargetingArrow() {
   const st = useStore()
   const [mouse, setMouse] = useState<{ x: number; y: number } | null>(null)
   const active =
-    st.selection !== null && st.selection.type !== 'polarizeFace' && st.selection.type !== 'influenceFace'
+    st.selection !== null &&
+    st.selection.type !== 'polarizeFace' &&
+    st.selection.type !== 'measureFace' &&
+    st.selection.type !== 'influenceFace'
 
   useEffect(() => {
     if (!active) {
@@ -400,15 +403,15 @@ export function ManualOverlay() {
                 <div>
                   <h4>Quando dois estados viram um</h4>
                   <p>
-                    Quando um Sujeito ataca, é atacado ou recebe o Protocolo Medição, apenas A ou B
-                    fica. Esse é o <strong>colapso</strong>. Sem interferência, cada estado tem 50% de
-                    chance. Depois, o selo azul mostra a Vida atual; o dano permanece entre turnos.
+                    Quando um Sujeito ataca ou é atacado, apenas A ou B fica. Esse é o{' '}
+                    <strong>colapso</strong>. Sem interferência, cada estado tem 50% de chance. Depois,
+                    o selo azul mostra a Vida atual; o dano permanece entre turnos.
                   </p>
                   <p className="manual-emphasis">
                     <strong>Observar influencia o colapso.</strong> Por 2 Qubits, uma vez por turno,
                     escolha A ou B de qualquer Sujeito em superposição: 75% de chance para sua escolha
-                    e 25% para a outra. Medição é 50/50. Polarização garante sua escolha, mas apenas em
-                    um Sujeito seu.
+                    e 25% para a outra. Medição custa 3 Qubits e garante sua escolha em qualquer
+                    Sujeito. Polarização custa 2 Qubits e faz o mesmo, mas apenas em um Sujeito seu.
                   </p>
                 </div>
               </li>
@@ -434,9 +437,11 @@ export function ManualOverlay() {
                 <dt>Palavras-chave</dt>
                 <dd>
                   Enquanto houver um inimigo com <strong>Barreira</strong>, seus ataques devem mirar
-                  nele. <strong>Veloz</strong> permite atacar no turno em que o Sujeito entra.
-                  <strong>Fantasma</strong> ignora Barreira. Essas habilidades só funcionam se estiverem
-                  no estado que permaneceu após o colapso.
+                  nele. <strong>Veloz</strong> permite atacar no turno em que o Sujeito entra.{' '}
+                  <strong>Fantasma</strong> ignora Barreira ao atacar e, quando ativado, deixa o Sujeito
+                  Intangível até seu próximo turno. Nesse período ele não pode ser alvo de ataques, mas
+                  ainda sofre Protocolos e revides. Habilidades impressas em um estado só funcionam
+                  após o colapso.
                 </dd>
               </div>
               <div>

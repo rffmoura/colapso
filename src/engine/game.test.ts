@@ -6,6 +6,7 @@ import {
   damageTarget,
   endTurn,
   finishProtocol,
+  grantTempKeywords,
   influenceCreature,
   newGame,
   playCreature,
@@ -35,6 +36,7 @@ function creature(defId: string, uid: number, owner: Owner, face: 0 | 1 | null =
     summonedTurn: 0,
     entangledWith: null,
     tempKeywords: [],
+    ghostProtected: false,
   }
 }
 
@@ -199,12 +201,67 @@ describe('regressões e Diretrizes', () => {
     expect(collapseCreature(base, superposed.uid, 1).state.board.player.at(-1)?.collapsed).toBe(1)
   })
 
-  it('mantém Medição em 50/50 e Polarização com face garantida', () => {
+  it('mantém o colapso comum em 50/50 e aceita uma face garantida', () => {
     const base = newGame(setup())
     base.board.ai.push(creature('gato', 923, 'ai'))
     expect(collapseCreature(base, 923, undefined, true, 0.49999).state.board.ai[0].collapsed).toBe(0)
     expect(collapseCreature(base, 923, undefined, true, 0.5).state.board.ai[0].collapsed).toBe(1)
     expect(collapseCreature(base, 923, 0, true, 0.99).state.board.ai[0].collapsed).toBe(0)
+    expect(getDef('medicao').cost).toBe(3)
+  })
+
+  it('Fantasma protege de ataques até o próximo turno do dono', () => {
+    const base = newGame(setup())
+    base.turn = 2
+    const ghost = creature('neutrino', 924, 'player')
+    const attacker = creature('foton', 925, 'ai', 0)
+    base.board.player.push(ghost)
+    base.board.ai.push(attacker)
+
+    const collapsed = collapseCreature(base, ghost.uid, 0)
+    expect(collapsed.state.board.player[0].ghostProtected).toBe(true)
+    collapsed.state.active = 'ai'
+    expect(validAttackTargets(collapsed.state, collapsed.state.board.ai[0])).toEqual([
+      { kind: 'hero', owner: 'player' },
+    ])
+
+    collapsed.state.active = 'player'
+    const nextOwnerTurn = startTurn(collapsed.state)
+    expect(nextOwnerTurn.state.board.player[0].ghostProtected).toBe(false)
+  })
+
+  it('Túnel mantém Fantasma durante o turno inimigo e ainda permite revide', () => {
+    const base = newGame(setup())
+    base.turn = 3
+    const ghost = creature('neutrino', 926, 'player', 0)
+    const defender = creature('sentinela', 927, 'ai', 0)
+    base.board.player.push(ghost)
+    base.board.ai.push(defender)
+
+    const granted = grantTempKeywords(base, ghost.uid, ['fantasma', 'veloz'])
+    const enemyTurn = startTurn(endTurn(granted.state).state)
+    expect(enemyTurn.state.board.player[0].tempKeywords).toContain('fantasma')
+    expect(enemyTurn.state.board.player[0].ghostProtected).toBe(true)
+
+    const countered = resolveCombat(granted.state, ghost.uid, { kind: 'creature', uid: defender.uid })
+    expect(countered.state.board.player).toHaveLength(0)
+
+    const ownerTurn = startTurn(endTurn(enemyTurn.state).state)
+    expect(ownerTurn.state.board.player[0].tempKeywords).toEqual([])
+    expect(ownerTurn.state.board.player[0].ghostProtected).toBe(false)
+  })
+
+  it('Túnel continua protegendo um sujeito que colapsa em uma face sem Fantasma', () => {
+    const base = newGame(setup())
+    const subject = creature('neutrino', 928, 'player')
+    base.board.player.push(subject)
+
+    const granted = grantTempKeywords(base, subject.uid, ['fantasma', 'veloz'])
+    const collapsed = collapseCreature(granted.state, subject.uid, 1)
+
+    expect(collapsed.state.board.player[0].collapsed).toBe(1)
+    expect(collapsed.state.board.player[0].tempKeywords).toContain('fantasma')
+    expect(collapsed.state.board.player[0].ghostProtected).toBe(true)
   })
 
   it('aplica vida do chefe, Blindagem, Núcleo, Arquivo e Linha de Montagem', () => {

@@ -124,11 +124,11 @@ export const CARDS: Record<string, CardDef> = {
     id: 'medicao',
     name: 'Medição',
     title: 'Protocolo M-01',
-    cost: 1,
+    cost: 3,
     type: 'feitico',
     spell: 'medir',
-    text: 'Colapsa qualquer sujeito em um estado aleatório.',
-    bio: 'Olhar já é interferir. Assinar o formulário também.',
+    text: 'Colapsa qualquer sujeito no estado que você escolher.',
+    bio: 'O formulário agora aceita respostas. O universo apresentou recurso.',
   },
   polarizacao: {
     id: 'polarizacao',
@@ -157,7 +157,7 @@ export const CARDS: Record<string, CardDef> = {
     cost: 2,
     type: 'feitico',
     spell: 'tunel',
-    text: 'Um sujeito seu ganha Fantasma e Veloz até o fim do turno.',
+    text: 'Um sujeito seu ganha Fantasma e Veloz. Ele pode atacar agora e fica Intangível até seu próximo turno.',
     bio: 'Por que contornar a parede se existe uma probabilidade de você já estar do outro lado?',
   },
   pulso: {

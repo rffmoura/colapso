@@ -28,8 +28,8 @@ com ataque, vida e habilidades próprios:
 
 - **Superposição** — em campo, o sujeito é os dois estados ao mesmo tempo (e não tem
   palavra-chave nenhuma). As duas linhas pulsam na ficha.
-- **Colapso** — ao atacar, ser atacado ou ser medido, um carimbo `OBSERVADO` sorteia um dos dois
-  estados (50/50). Para sempre.
+- **Colapso** — ao atacar ou ser atacado, um carimbo `OBSERVADO` sorteia um dos dois estados
+  (50/50). Para sempre. O Protocolo Medição permite escolher o estado de qualquer sujeito.
 - **Emaranhamento** — um barbante vermelho liga um sujeito seu a um inimigo: colapsam juntos
   (A com A, B com B) e, quando um morre, o outro sofre 2 de dano de eco.
 - **Observar** — poder de herói (2 qubits, 1x/turno): escolha A ou B para qualquer sujeito. A
@@ -55,7 +55,7 @@ Plantão; nenhuma progressão é gravada.
 | Compra | **Refil**: no início do turno, compre até ter 5 fichas (mínimo 1) |
 | Arquivo | Deck de 20; quando esvazia, o **descarte volta embaralhado** — nunca há turno morto |
 | Campo | Até 6 sujeitos por lado; cada um ataca 1x por turno |
-| Palavras-chave | **Barreira** (atacado primeiro) · **Veloz** (ataca ao entrar) · **Fantasma** (ignora Barreira) — só valem no estado colapsado que as possui |
+| Palavras-chave | **Barreira** (atacado primeiro) · **Veloz** (ataca ao entrar) · **Fantasma** (ignora Barreira e concede Intangível até o próximo turno) |
 
 ## Controles
 

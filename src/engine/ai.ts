@@ -65,14 +65,32 @@ export function decideAi(s: GameState): AiAction {
     }
   }
 
-  // 5. Medição na superposição inimiga mais perigosa
+  // 5. Medição: fixa a pior face de uma ameaça ou a melhor face de um aliado
   const medir = playable.find((h) => getDef(h.defId).spell === 'medir')
   if (medir) {
     const scary = foeBoard
       .filter((c) => c.collapsed === null)
       .sort((a, b) => expectedAttack(b) - expectedAttack(a))[0]
     if (scary && expectedAttack(scary) >= 2.5) {
-      return { kind: 'spell', handUid: medir.uid, spell: 'medir', targets: [{ kind: 'creature', uid: scary.uid }] }
+      return {
+        kind: 'spell',
+        handUid: medir.uid,
+        spell: 'medir',
+        targets: [{ kind: 'creature', uid: scary.uid }],
+        face: worstFace(scary.defId),
+      }
+    }
+    const ally = myBoard
+      .filter((c) => c.collapsed === null)
+      .sort((a, b) => bestFaceValue(b.defId) - bestFaceValue(a.defId))[0]
+    if (ally) {
+      return {
+        kind: 'spell',
+        handUid: medir.uid,
+        spell: 'medir',
+        targets: [{ kind: 'creature', uid: ally.uid }],
+        face: bestFace(ally.defId),
+      }
     }
   }
 
@@ -175,9 +193,21 @@ function faceTacticalValue(defId: string, face: 0 | 1): number {
   const keywordValue = state.keywords.reduce((total, keyword) => {
     if (keyword === 'barreira') return total + 1.8
     if (keyword === 'veloz') return total + 1.4
-    return total + 1.2
+    return total + 2.6
   }, 0)
   return state.attack * 1.35 + state.health + keywordValue
+}
+
+function bestFace(defId: string): 0 | 1 {
+  return faceTacticalValue(defId, 0) >= faceTacticalValue(defId, 1) ? 0 : 1
+}
+
+function worstFace(defId: string): 0 | 1 {
+  return faceTacticalValue(defId, 0) <= faceTacticalValue(defId, 1) ? 0 : 1
+}
+
+function bestFaceValue(defId: string): number {
+  return Math.max(faceTacticalValue(defId, 0), faceTacticalValue(defId, 1))
 }
 
 export function bestInfluenceAgainst(s: GameState, defId: string): { face: 0 | 1; priority: number } {

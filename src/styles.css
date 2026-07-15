@@ -847,7 +847,33 @@ button { font-family: inherit; color: inherit; background: none; border: none; c
 
 .kw.kw-temp { background: var(--entangle); color: var(--paper-card); border-color: var(--ink); }
 
-[data-tip]:not(.card-cost, .super-seal, .hp-now) { position: relative; }
+.ghost-protection {
+  position: absolute;
+  top: 3.35rem;
+  right: 0.72rem;
+  z-index: 7;
+  padding: 0.14rem 0.38rem;
+  border: 1.6px solid var(--ink);
+  border-radius: 3px;
+  background: var(--paper-card);
+  box-shadow: 1px 2px 0 var(--entangle);
+  color: var(--entangle);
+  cursor: help;
+  font-family: var(--font-display);
+  font-size: 0.5rem;
+  letter-spacing: 0.06em;
+  line-height: 1;
+  text-transform: uppercase;
+  transform: rotate(2deg);
+}
+
+.size-board .ghost-protection {
+  top: 2.68rem;
+  right: 0.62rem;
+  font-size: 0.43rem;
+}
+
+[data-tip]:not(.card-cost, .super-seal, .hp-now, .ghost-protection) { position: relative; }
 
 [data-tip]:hover::after,
 [data-tip]:focus-visible::after {

@@ -5,6 +5,7 @@ import { canAttack } from '../engine/game'
 import type { Creature } from '../engine/types'
 import {
   chooseInfluenceFace,
+  chooseMeasureFace,
   choosePolarizeFace,
   clickCreature,
   refRegistry,
@@ -58,10 +59,21 @@ export function BoardCreature({ c }: { c: Creature }) {
   }, [lastDmgId, controls])
 
   const faceSelection =
-    st.selection?.type === 'polarizeFace' || st.selection?.type === 'influenceFace' ? st.selection : null
+    st.selection?.type === 'polarizeFace' ||
+    st.selection?.type === 'measureFace' ||
+    st.selection?.type === 'influenceFace'
+      ? st.selection
+      : null
   const showFaceChoice = faceSelection?.targetUid === c.uid
   const isInfluence = faceSelection?.type === 'influenceFace'
+  const isMeasurement = faceSelection?.type === 'measureFace'
   const faces = showFaceChoice ? getDef(c.defId).faces! : null
+
+  const chooseFace = (face: 0 | 1) => {
+    if (isInfluence) chooseInfluenceFace(face)
+    else if (isMeasurement) chooseMeasureFace(face)
+    else choosePolarizeFace(face)
+  }
 
   const isBlocking = st.blockPulse?.uids.includes(c.uid) ?? false
 
@@ -120,16 +132,19 @@ export function BoardCreature({ c }: { c: Creature }) {
               hp={c.collapsed !== null ? c.hp : undefined}
               size="board"
               tempKeywords={c.tempKeywords}
+              ghostProtected={c.ghostProtected}
             />
             {c.entangledWith !== null && <span className="entangle-mark">∞</span>}
             {showFaceChoice && faces && (
               <div className={`face-choice${isInfluence ? ' influence-choice' : ''}`} onClick={(e) => e.stopPropagation()}>
-                <div className="face-choice-label">{isInfluence ? 'influenciar estado' : 'fixar estado'}</div>
-                <button className="choice-0" onClick={() => (isInfluence ? chooseInfluenceFace(0) : choosePolarizeFace(0))}>
+                <div className="face-choice-label">
+                  {isInfluence ? 'influenciar estado' : isMeasurement ? 'medir estado' : 'fixar estado'}
+                </div>
+                <button className="choice-0" onClick={() => chooseFace(0)}>
                   <span>A · {faces[0].label}</span>
                   {isInfluence && <small>75% desejado · 25% B</small>}
                 </button>
-                <button className="choice-1" onClick={() => (isInfluence ? chooseInfluenceFace(1) : choosePolarizeFace(1))}>
+                <button className="choice-1" onClick={() => chooseFace(1)}>
                   <span>B · {faces[1].label}</span>
                   {isInfluence && <small>75% desejado · 25% A</small>}
                 </button>
