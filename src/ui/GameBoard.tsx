@@ -11,6 +11,7 @@ export function GameBoard() {
   const st = useStore()
   const canEnd = !st.busy && st.phase === 'game' && st.game.active === 'player'
   const [handLowered, setHandLowered] = useState(false)
+  const [previewedHandUid, setPreviewedHandUid] = useState<number | null>(null)
 
   // sacode a bancada a cada impacto
   const [shaking, setShaking] = useState(false)
@@ -26,7 +27,13 @@ export function GameBoard() {
 
   return (
     <>
-      <div className={`game${handLowered ? ' hand-lowered' : ''}`} onClick={cancelSelection}>
+      <div
+        className={`game${handLowered ? ' hand-lowered' : ''}`}
+        onClick={() => {
+          cancelSelection()
+          setPreviewedHandUid(null)
+        }}
+      >
         <div className="row-top">
           <HeroPanel owner="ai" />
           <AiHand />
@@ -58,6 +65,7 @@ export function GameBoard() {
             disabled={!canEnd}
             onClick={(e) => {
               e.stopPropagation()
+              setPreviewedHandUid(null)
               endPlayerTurn()
             }}
           >
@@ -73,6 +81,7 @@ export function GameBoard() {
             aria-expanded={!handLowered}
             onClick={(event) => {
               event.stopPropagation()
+              setPreviewedHandUid(null)
               setHandLowered((lowered) => !lowered)
             }}
           >
@@ -80,7 +89,11 @@ export function GameBoard() {
             <span>{handLowered ? `Mostrar mão (${st.game.sides.player.hand.length})` : 'Abaixar mão'}</span>
           </button>
           <HeroPanel owner="player" />
-          <PlayerHand hidden={handLowered} />
+          <PlayerHand
+            hidden={handLowered}
+            previewedUid={previewedHandUid}
+            onPreviewChange={setPreviewedHandUid}
+          />
           <PileGroup owner="player" />
         </div>
       </div>

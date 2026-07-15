@@ -1,25 +1,54 @@
 import { AnimatePresence, motion } from 'motion/react'
-import { useCallback } from 'react'
+import { useCallback, useEffect, useState } from 'react'
 import type { CSSProperties } from 'react'
 import { getDef } from '../engine/cards'
 import { canPlay } from '../engine/game'
 import { clickHandCard, refRegistry, useStore } from '../state/store'
 import { CardView } from './CardView'
 
-export function PlayerHand({ hidden = false }: { hidden?: boolean }) {
+const MOBILE_HAND_CONFIRMATION = '(orientation: landscape) and (max-width: 1024px) and (max-height: 560px)'
+
+function useMobileHandConfirmation() {
+  const [matches, setMatches] = useState(() =>
+    typeof window !== 'undefined' ? window.matchMedia(MOBILE_HAND_CONFIRMATION).matches : false,
+  )
+
+  useEffect(() => {
+    const media = window.matchMedia(MOBILE_HAND_CONFIRMATION)
+    const update = () => setMatches(media.matches)
+    update()
+    media.addEventListener('change', update)
+    return () => media.removeEventListener('change', update)
+  }, [])
+
+  return matches
+}
+
+type PlayerHandProps = {
+  hidden?: boolean
+  previewedUid: number | null
+  onPreviewChange: (uid: number | null) => void
+}
+
+export function PlayerHand({ hidden = false, previewedUid, onPreviewChange }: PlayerHandProps) {
   const st = useStore()
   const hand = st.game.sides.player.hand
   const myTurn = st.game.active === 'player' && !st.busy && st.phase === 'game'
+  const mobileConfirmation = useMobileHandConfirmation()
   const n = hand.length
   const registerRef = useCallback((el: HTMLDivElement | null) => {
     if (el) refRegistry.set('hand-player', el)
     else refRegistry.delete('hand-player')
   }, [])
 
+  useEffect(() => {
+    if ((!mobileConfirmation || hidden) && previewedUid !== null) onPreviewChange(null)
+  }, [hidden, mobileConfirmation, onPreviewChange, previewedUid])
+
   return (
     <div
       id="player-hand"
-      className="hand"
+      className={`hand${previewedUid !== null ? ' is-previewing' : ''}`}
       ref={registerRef}
       aria-hidden={hidden || undefined}
       inert={hidden || undefined}
@@ -29,35 +58,75 @@ export function PlayerHand({ hidden = false }: { hidden?: boolean }) {
         // sobreposição cresce com o tamanho da mão para o leque caber na tela
         const overlap = -(1.2 + n * 0.16)
         const playable = myTurn && canPlay(st.game, 'player', h.uid)
+        const def = getDef(h.defId)
+        const previewed = mobileConfirmation && previewedUid === h.uid
+        const unavailableReason = !myTurn
+          ? 'Aguarde seu turno'
+          : def.cost > st.game.sides.player.qubits
+            ? `Faltam ${def.cost - st.game.sides.player.qubits} qubit${def.cost - st.game.sides.player.qubits > 1 ? 's' : ''}`
+            : 'Bancada cheia'
         const style = {
           marginInline: `${overlap}rem`,
           zIndex: i,
           '--fan-y': `${Math.abs(spread) * 14}px`,
           '--fan-y-mobile': `${Math.abs(spread) * 8}px`,
           '--fan-rot': `${spread * 8}deg`,
+          '--preview-x-mobile': `${spread * -72}px`,
         } as CSSProperties
+
+        const inspectOrPlay = () => {
+          if (mobileConfirmation) {
+            onPreviewChange(h.uid)
+            return
+          }
+          clickHandCard(h.uid)
+        }
+
         return (
-          <button
-            type="button"
+          <div
             key={h.uid}
-            className={`hand-card ${playable ? 'playable' : 'unplayable'}`}
+            className={`hand-card ${playable ? 'playable' : 'unplayable'}${previewed ? ' previewed' : ''}`}
             style={style}
-            aria-label={`Jogar ficha ${getDef(h.defId).name}`}
-            onClick={(e) => {
-              e.stopPropagation()
-              clickHandCard(h.uid)
-            }}
-            onKeyDown={(e) => {
-              if (e.key !== 'Enter' && e.key !== ' ') return
-              e.preventDefault()
-              e.stopPropagation()
-              clickHandCard(h.uid)
-            }}
           >
             <div className="hand-card-inner">
-              <CardView defId={h.defId} size="hand" showCost />
+              <button
+                type="button"
+                className="hand-card-inspect"
+                aria-label={`${mobileConfirmation ? 'Examinar' : 'Jogar'} ficha ${def.name}`}
+                aria-expanded={mobileConfirmation ? previewed : undefined}
+                aria-controls={mobileConfirmation ? `hand-play-${h.uid}` : undefined}
+                onClick={(event) => {
+                  event.stopPropagation()
+                  inspectOrPlay()
+                }}
+                onKeyDown={(event) => {
+                  if (event.key !== 'Enter' && event.key !== ' ') return
+                  event.preventDefault()
+                  event.stopPropagation()
+                  inspectOrPlay()
+                }}
+              >
+                <CardView defId={h.defId} size="hand" showCost />
+              </button>
+              {previewed && (
+                <button
+                  type="button"
+                  id={`hand-play-${h.uid}`}
+                  className="hand-play-confirm"
+                  disabled={!playable}
+                  aria-label={playable ? `Jogar ${def.name} por ${def.cost} qubits` : unavailableReason}
+                  onClick={(event) => {
+                    event.stopPropagation()
+                    onPreviewChange(null)
+                    clickHandCard(h.uid)
+                  }}
+                >
+                  <span>{playable ? 'Jogar ficha' : unavailableReason}</span>
+                  <b>{def.cost}Q</b>
+                </button>
+              )}
             </div>
-          </button>
+          </div>
         )
       })}
     </div>
