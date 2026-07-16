@@ -168,8 +168,10 @@ equipada. Após cada uma das três primeiras vitórias:
 Somente uma Contramedida do jogador pode ficar ativa em cada duelo. O Supervisor recebe duas
 Contramedidas inimigas diferentes, usadas em sequência.
 
-O estado do Plantão não usa `localStorage`. Apenas a preferência didática dos Memorandos do
-Supervisor é persistida no navegador.
+Não existe progressão permanente. A versão nativa salva apenas um `RunCheckpoint` versionado no
+começo de cada setor. Se o app for fechado durante o duelo, ele volta ao briefing e reinicia
+aquele confronto com o mesmo arsenal, Diretrizes e Contramedida; vitória final, derrota ou novo
+Plantão apagam o checkpoint. Preferências didáticas permanecem localmente em cada interface.
 
 ## 10. Ordem de resolução
 

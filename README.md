@@ -2,22 +2,36 @@
 
 > Um duelo de cartas onde **nada está decidido até alguém olhar**.
 
-COLAPSO é um card game web single-player ambientado no Instituto Meia-Vida, um laboratório dos
-anos 1950 que cataloga entidades quânticas. Toda noite, um Observador humano (você) e o Autômato
-da casa disputam a custódia dos sujeitos do arquivo — criaturas que são duas coisas ao mesmo
-tempo até serem observadas. Observar é interferir; interferir é vencer.
+COLAPSO é um card game single-player para web e iOS ambientado no Instituto Meia-Vida, um
+laboratório dos anos 1950 que cataloga entidades quânticas. Toda noite, um Observador humano
+(você) e o Autômato da casa disputam a custódia dos sujeitos do arquivo — criaturas que são duas
+coisas ao mesmo tempo até serem observadas. Observar é interferir; interferir é vencer.
 
-**Jogo 100% front-end**: sem backend. Retratos ilustrados dos Sujeitos, pranchas vetoriais dos
-Protocolos, sons sintetizados em tempo real e visual de papel impresso dos anos 50.
+**Jogo 100% local**: sem backend, conta ou analytics. Web e nativo compartilham regras, cartas,
+IA, Contramedidas, Diretrizes e fluxo de Plantão; cada interface apresenta o mesmo jogo com
+interações próprias para mouse ou toque.
 
 ## Como rodar
 
+Requer Node `20.19.4` ou mais recente. O arquivo `.nvmrc` mantém a versão usada pelo projeto.
+
 ```bash
+nvm use
 npm install
-npm run dev      # desenvolvimento (Vite, http://localhost:5173)
-npm test         # suíte determinística do motor
-npm run build    # build de produção em dist/
+
+npm run dev:web       # Vite em http://localhost:5173
+npm run dev:native    # Metro em localhost para o simulador
+npm run dev:native:device # Metro em LAN para iPad/iPhone físicos
+npm run ios:native    # compila e instala no simulador/dispositivo iOS
+npm run ios:native:device # escolhe um iPad/iPhone físico para instalar
+
+npm run typecheck
+npm test              # web, core, sessão e componentes nativos
+npm run build         # produção web em apps/web/dist/
+npm run export:native # bundle iOS em apps/native/dist-ios/
 ```
+
+A versão nativa usa development build; Expo Go não contém todos os módulos necessários.
 
 ## A mecânica-assinatura: superposição
 
@@ -63,16 +77,21 @@ Plantão; nenhuma progressão é gravada.
 
 ## Controles
 
-- **Clique** numa ficha da mão para jogá-la (protocolos com alvo entram em modo de mira)
-- **Clique** num sujeito seu e depois no alvo para atacar
-- **Esc** ou clique no fundo cancela a seleção
-- **?** abre o Manual do Observador · **S** silencia o som
+- **Web:** clique numa ficha da mão para jogar; clique num sujeito e depois no alvo para atacar;
+  `Esc` cancela a seleção.
+- **Nativo:** toque numa ficha para ampliá-la e confirme em **Jogar ficha**; toque num sujeito
+  elegível e depois somente em um alvo destacado.
+- O painel inimigo vira o alvo de ataque direto durante a mira e nunca abre informações nesse
+  momento.
+- A mão nativa é retrátil. Manual, palavras-chave, painéis e Contramedidas usam ações explícitas
+  de consulta — não existem tooltips ou cursor virtual.
 
 ## O jogo ensina jogando
 
 - **Memorandos do Supervisor** — na primeira vez que cada mecânica acontece, um memo explica na
-  hora (persistido em `localStorage`; "Já sei jogar" desativa todos)
-- **Tooltips** — palavras-chave, custos, qubits, coerência e pilhas se explicam no hover
+  hora; a preferência usa `localStorage` no web e AsyncStorage no nativo.
+- **Consulta contextual** — tooltips no web e inspetores explícitos no nativo explicam palavras-
+  chave, custos, Qubits, Coerência e arquivos.
 - **Manual do Observador** — regras completas a um clique, no título e em jogo
 
 ## O elenco do arquivo
@@ -94,29 +113,29 @@ Decoerência e Requisição. Custos, alvos e ordem de resolução estão em [RUL
 
 ## Stack e arquitetura
 
-**Vite · React 19 · TypeScript · Motion · Vitest**
+**React 19 · TypeScript · Vite · Expo SDK 55 · React Native · Reanimated · Vitest · Jest**
 
+```text
+apps/
+├── web/                 # interface Vite existente, mouse e toque responsivo
+└── native/              # Expo iOS/Android, paisagem e interaction design nativo
+packages/
+├── game-core/           # regras puras, cartas, IA, Plantão e RandomSource injetável
+├── game-session/        # GameCommand, seleção, fila PresentationCue e checkpoint
+└── game-assets/         # retratos WebP compartilhados pelas duas interfaces
+tools/
+└── generate-native-sfx.mjs
 ```
-src/
-├── engine/          # regras puras, sem UI
-│   ├── types.ts     # tipos e constantes do jogo
-│   ├── cards.ts     # as 16 fichas do arquivo
-│   ├── secrets.ts   # Contramedidas e Diretrizes
-│   ├── run.ts       # draft, arsenal e sequência de quatro duelos
-│   ├── game.ts      # primitivas imutáveis (colapso, combate, compra...)
-│   └── ai.ts        # heurísticas do Autômato
-├── state/
-│   └── store.ts     # orquestrador: sequencia turnos, animações e sons
-├── ui/
-│   ├── characters.tsx   # retratos dos Sujeitos + pranchas vetoriais dos Protocolos
-│   ├── CardView.tsx     # anatomia da ficha de catálogo
-│   ├── GameBoard.tsx    # a bancada do Instituto
-│   ├── Piles.tsx        # pilhas de arquivo/descarte + fantasmas de compra
-│   ├── didactics.ts     # memorandos do Supervisor
-│   └── ...
-└── audio/
-    └── sfx.ts       # efeitos sonoros sintetizados via WebAudio
-```
+
+O motor não depende de DOM, WebAudio, coordenadas ou temporizadores visuais. No nativo, cada
+animação bloqueante confirma sua conclusão com `ACK_PRESENTATION`; a sessão nunca pressupõe uma
+duração fixa. O web preserva seu adaptador visual e compartilha com a sessão a política de alvos.
+
+### Retomada do Plantão no nativo
+
+No começo de cada setor, um `RunCheckpoint` versionado guarda arsenal, Diretrizes e
+Contramedida. Se o app for fechado durante o duelo, ele reabre no briefing e reinicia somente
+aquele confronto. Vitória final, derrota ou um novo Plantão apagam o checkpoint.
 
 ## Documentação
 

@@ -1,0 +1,71 @@
+{
+  "name": "@colapso/native",
+  "main": "expo-router/entry",
+  "version": "1.0.0",
+  "scripts": {
+    "start": "NODE_OPTIONS=--dns-result-order=ipv4first expo start --dev-client --localhost",
+    "start:device": "expo start --dev-client --lan",
+    "android": "expo run:android",
+    "ios": "expo run:ios",
+    "ios:device": "expo run:ios --device",
+    "doctor": "expo install --check && npx expo-doctor",
+    "export:ios": "expo export --platform ios --output-dir dist-ios",
+    "typecheck": "tsc --noEmit",
+    "test": "jest --runInBand",
+    "lint": "expo lint"
+  },
+  "dependencies": {
+    "@colapso/game-assets": "*",
+    "@colapso/game-core": "*",
+    "@colapso/game-session": "*",
+    "@expo-google-fonts/archivo": "^0.4.2",
+    "@expo-google-fonts/archivo-black": "^0.4.1",
+    "@expo-google-fonts/special-elite": "^0.4.1",
+    "@react-native-async-storage/async-storage": "2.2.0",
+    "@react-navigation/bottom-tabs": "^7.15.5",
+    "@react-navigation/elements": "^2.9.10",
+    "@react-navigation/native": "^7.1.33",
+    "expo": "~55.0.28",
+    "expo-asset": "~55.0.18",
+    "expo-audio": "~55.0.16",
+    "expo-constants": "~55.0.17",
+    "expo-dev-client": "~55.0.37",
+    "expo-device": "~55.0.19",
+    "expo-font": "~55.0.8",
+    "expo-glass-effect": "~55.0.11",
+    "expo-haptics": "~55.0.16",
+    "expo-image": "~55.0.11",
+    "expo-linking": "~55.0.16",
+    "expo-router": "~55.0.17",
+    "expo-splash-screen": "~55.0.23",
+    "expo-status-bar": "~55.0.6",
+    "expo-symbols": "~55.0.9",
+    "expo-system-ui": "~55.0.20",
+    "expo-web-browser": "~55.0.18",
+    "react": "19.2.0",
+    "react-dom": "19.2.0",
+    "react-native": "0.83.6",
+    "react-native-gesture-handler": "~2.30.0",
+    "react-native-reanimated": "4.2.1",
+    "react-native-safe-area-context": "~5.6.2",
+    "react-native-screens": "~4.23.0",
+    "react-native-svg": "15.15.3",
+    "react-native-web": "~0.21.0",
+    "react-native-worklets": "0.7.4"
+  },
+  "devDependencies": {
+    "@testing-library/react-native": "^13.3.3",
+    "@types/jest": "^29.5.14",
+    "@types/react": "~19.2.2",
+    "jest-expo": "~55.0.20",
+    "react-test-renderer": "^19.2.0",
+    "typescript": "~5.9.2"
+  },
+  "private": true,
+  "jest": {
+    "preset": "jest-expo",
+    "setupFilesAfterEnv": [
+      "<rootDir>/jest.setup.ts"
+    ]
+  }
+}

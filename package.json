@@ -1,25 +1,40 @@
 {
-  "name": "colapso",
+  "name": "colapso-workspace",
   "private": true,
   "version": "0.1.0",
-  "type": "module",
-  "scripts": {
-    "dev": "vite",
-    "build": "tsc -b && vite build",
-    "test": "vitest run",
-    "preview": "vite preview"
+  "engines": {
+    "node": ">=20.19.4"
   },
-  "dependencies": {
-    "motion": "^12.19.0",
-    "react": "^19.1.0",
-    "react-dom": "^19.1.0"
+  "workspaces": [
+    "apps/*",
+    "packages/*"
+  ],
+  "scripts": {
+    "dev": "npm run dev -w @colapso/web",
+    "dev:web": "npm run dev -w @colapso/web",
+    "dev:native": "npm run start -w @colapso/native",
+    "dev:native:device": "npm run start:device -w @colapso/native",
+    "ios:native": "npm run ios -w @colapso/native",
+    "ios:native:device": "npm run ios:device -w @colapso/native",
+    "doctor:native": "npm run doctor -w @colapso/native",
+    "export:native": "npm run export:ios -w @colapso/native",
+    "build": "npm run build -w @colapso/web",
+    "test": "npm run test --workspaces --if-present",
+    "typecheck": "npm run typecheck --workspaces --if-present"
   },
   "devDependencies": {
-    "@types/react": "^19.1.0",
-    "@types/react-dom": "^19.1.0",
-    "@vitejs/plugin-react": "^4.5.0",
-    "typescript": "~5.8.3",
-    "vite": "^6.3.5",
-    "vitest": "^4.1.10"
+    "expo-asset": "55.0.18",
+    "expo-constants": "55.0.17",
+    "react": "19.2.0",
+    "react-dom": "19.2.0",
+    "react-native": "0.83.6",
+    "react-test-renderer": "19.2.0"
+  },
+  "overrides": {
+    "expo-asset": "55.0.18",
+    "expo-constants": "55.0.17",
+    "react": "19.2.0",
+    "react-dom": "19.2.0",
+    "react-native": "0.83.6"
   }
 }

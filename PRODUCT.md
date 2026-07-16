@@ -2,9 +2,9 @@
 
 ## O que é
 
-**COLAPSO** é um card game web single-player em que um Observador humano enfrenta o Autômato do
-Instituto Meia-Vida. Os Sujeitos entram em campo em superposição, com dois estados possíveis, e
-só ativam Ataque, Vida e habilidades quando colapsam.
+**COLAPSO** é um card game single-player para web e dispositivos móveis em que um Observador
+humano enfrenta o Autômato do Instituto Meia-Vida. Os Sujeitos entram em campo em superposição,
+com dois estados possíveis, e só ativam Ataque, Vida e habilidades quando colapsam.
 
 A experiência atual é um **Plantão contínuo** de quatro duelos: três setores e uma batalha final
 contra o Autômato Supervisor. Entre confrontos, a máquina recebe Diretrizes cumulativas e o
@@ -33,7 +33,7 @@ Instituto: registra, mede, arquiva e reage automaticamente a qualquer desvio de 
 
 - Jogadores casuais de card games como Hearthstone, Marvel Snap e Balatro.
 - Partidas desejadas de aproximadamente 6–9 minutos por duelo.
-- Experiência web desktop-first, com interface responsiva para telas menores.
+- Experiência web responsiva e aplicação React Native em paisagem, primeiro para iPad e iPhone.
 - Regras compreensíveis sem exigir leitura prévia de documentação externa.
 
 A primeira versão foi considerada confusa. O produto deve ensinar jogando: textos diretos,
@@ -77,8 +77,9 @@ O Plantão transforma duelos isolados em uma sequência curta de risco crescente
 - O Supervisor começa com 30 de Coerência e duas Contramedidas diferentes, armadas em sequência.
 - Uma derrota encerra a tentativa e apaga toda a progressão da sequência.
 
-Não existe metaprogressão ou persistência do Plantão em `localStorage`. Apenas as preferências
-dos Memorandos didáticos permanecem no navegador.
+Não existe metaprogressão. No nativo, um checkpoint técnico é salvo apenas no começo do setor:
+fechar o app durante o duelo retorna ao briefing e reinicia aquele confronto com o mesmo arsenal,
+Diretrizes e Contramedida. Preferências didáticas, som e resposta tátil ficam no dispositivo.
 
 ## Sistemas estratégicos
 
@@ -127,7 +128,8 @@ atingem.
 - Sete Contramedidas e cinco Diretrizes.
 - IA local com decisões baseadas somente em informações públicas e regras permitidas.
 - Quatro duelos, recompensa entre setores, arsenal, chefe e reinício da sequência.
-- Manual, tooltips, Memorandos contextuais, animações e áudio sintetizado.
+- Manual, consulta contextual, Memorandos, animações, áudio e resposta tátil no nativo.
+- Uma única fonte de regras e IA compartilhada entre web e React Native.
 - Sem coleção, deckbuilding, PvP, backend, conta ou progressão permanente.
 
 ## Metas de playtest

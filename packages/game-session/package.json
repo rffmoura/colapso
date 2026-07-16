@@ -1,0 +1,26 @@
+{
+  "name": "@colapso/game-session",
+  "private": true,
+  "version": "0.1.0",
+  "type": "module",
+  "exports": {
+    ".": "./src/index.ts",
+    "./react": "./src/react.ts"
+  },
+  "scripts": {
+    "test": "vitest run",
+    "typecheck": "tsc -p tsconfig.json"
+  },
+  "dependencies": {
+    "@colapso/game-core": "*"
+  },
+  "peerDependencies": {
+    "react": ">=19.1.0 <20"
+  },
+  "devDependencies": {
+    "@types/react": "^19.1.0",
+    "react": "19.2.0",
+    "typescript": "~5.8.3",
+    "vitest": "^4.1.10"
+  }
+}

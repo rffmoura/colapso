@@ -1,0 +1,58 @@
+# Learn more https://docs.github.com/en/get-started/getting-started-with-git/ignoring-files
+
+# dependencies
+node_modules/
+
+# Expo
+.expo/
+dist/
+dist-ios/
+web-build/
+expo-env.d.ts
+
+# Native
+.kotlin/
+*.orig.*
+*.jks
+*.p8
+*.p12
+*.key
+*.mobileprovision
+
+# Metro
+.metro-health-check*
+
+# debug
+npm-debug.*
+yarn-debug.*
+yarn-error.*
+
+# macOS
+.DS_Store
+*.pem
+
+# local env files
+.env*.local
+
+# typescript
+*.tsbuildinfo
+
+app-example
+
+# arquivos do template Expo que não fazem parte da identidade do COLAPSO
+/assets/expo.icon/
+/assets/images/android-icon-background.png
+/assets/images/android-icon-foreground.png
+/assets/images/android-icon-monochrome.png
+/assets/images/expo-badge-white.png
+/assets/images/expo-badge.png
+/assets/images/expo-logo.png
+/assets/images/logo-glow.png
+/assets/images/react-logo*.png
+/assets/images/splash-icon.png
+/assets/images/tabIcons/
+/assets/images/tutorial-web.png
+
+# generated native folders
+/ios
+/android

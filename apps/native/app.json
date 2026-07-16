@@ -1,0 +1,51 @@
+{
+  "expo": {
+    "name": "COLAPSO",
+    "slug": "colapso",
+    "version": "1.0.0",
+    "orientation": "landscape",
+    "icon": "./assets/images/icon.png",
+    "scheme": "colapso",
+    "userInterfaceStyle": "light",
+    "ios": {
+      "icon": "./assets/images/icon.png",
+      "bundleIdentifier": "com.rafaelmoura.colapso",
+      "supportsTablet": true,
+      "requireFullScreen": true,
+      "infoPlist": {
+        "UIStatusBarHidden": true,
+        "UIViewControllerBasedStatusBarAppearance": false
+      }
+    },
+    "android": {
+      "package": "com.rafaelmoura.colapso",
+      "adaptiveIcon": {
+        "backgroundColor": "#F1EBDD",
+        "foregroundImage": "./assets/images/icon.png"
+      },
+      "predictiveBackGestureEnabled": false
+    },
+    "web": {
+      "output": "static",
+      "favicon": "./assets/images/favicon.png"
+    },
+    "plugins": [
+      "expo-router",
+      [
+        "expo-splash-screen",
+        {
+          "backgroundColor": "#F1EBDD",
+          "android": {
+            "image": "./assets/images/icon.png",
+            "imageWidth": 120
+          }
+        }
+      ],
+      "expo-audio",
+      "expo-asset"
+    ],
+    "experiments": {
+      "typedRoutes": true
+    }
+  }
+}

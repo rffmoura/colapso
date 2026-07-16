@@ -149,6 +149,10 @@ Usar preferencialmente transform e opacity, easings ease-out-quart/expo e spring
 slams. Respeitar `prefers-reduced-motion`; nenhuma informação pode depender exclusivamente de
 animação.
 
+No React Native, gestos e transformações interativas rodam na thread de UI com Reanimated. Cada
+apresentação bloqueante confirma seu término ao controlador; pausar o app pausa áudio e entrada
+sem criar eventos duplicados ao retornar.
+
 ## Responsividade e acessibilidade
 
 - Desktop organiza a mesa horizontalmente. Em celulares, a experiência também é horizontal e
@@ -165,12 +169,19 @@ animação.
   ficha apenas a amplia para leitura; monitores pequenos com mouse mantêm hover e jogada direta.
   Jogar por toque exige confirmação explícita, e fichas indisponíveis continuam consultáveis com
   a própria ação explicando se faltam Qubits, turno ou espaço na bancada.
+- Na aplicação nativa, não há hover, cursor, linha seguindo o dedo ou tooltip automático. O
+  primeiro toque sempre inspeciona a ficha da mão; jogar exige confirmação. Painéis, pilhas,
+  palavras-chave e Contramedidas têm botões de consulta separados.
+- A composição nativa responde à altura útil e às safe areas, não ao modelo do aparelho. iPad e
+  iPhone compartilham a mesma hierarquia; a bandeja retrátil recupera espaço nos aparelhos com
+  menor altura.
 - Telas de Plantão, manual e inspetores podem rolar, mas a escolha principal deve aparecer na
   primeira dobra em paisagem. Três opções iniciais permanecem comparáveis lado a lado.
 - Alvos e cartas clicáveis precisam de estado de foco, nome acessível e operação por teclado.
 - Cor nunca é o único indicador de A/B, aliado/inimigo, armado/utilizado ou vitória/derrota.
 - Tooltips complementam rótulos; não podem ser a única forma de descobrir uma ação essencial.
-- Áreas clicáveis não devem ser menores que o próprio elemento visual.
+- Áreas clicáveis não devem ser menores que o próprio elemento visual; ações essenciais no
+  nativo oferecem no mínimo 44 pontos e rótulos acessíveis.
 
 ## Bans do projeto
 
