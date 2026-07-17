@@ -107,6 +107,9 @@ export interface Creature {
   ghostProtected: boolean
 }
 
+/** Estado derivado usado pela interface para comunicar se um sujeito pode atacar. */
+export type AttackReadiness = 'ready' | 'preparing' | 'spent' | 'inactive'
+
 export interface HandCard {
   uid: number
   defId: string

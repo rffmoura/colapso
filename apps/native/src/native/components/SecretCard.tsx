@@ -7,6 +7,7 @@ interface SecretCardProps {
   hidden?: boolean
   used?: boolean
   compact?: boolean
+  micro?: boolean
   dense?: boolean
   width?: number
   onPress?: () => void
@@ -19,6 +20,7 @@ export function NativeSecretCard({
   hidden,
   used,
   compact,
+  micro,
   dense,
   width = compact ? 108 : 220,
   onPress,
@@ -36,16 +38,22 @@ export function NativeSecretCard({
       style={({ pressed }) => [
         styles.card,
         dense && styles.cardDense,
-        { width, minHeight: compact ? 74 : dense ? 145 : 230 },
+        micro && styles.cardMicro,
+        { width, minHeight: micro ? 48 : compact ? 74 : dense ? 145 : 230 },
         hidden && styles.hidden,
         used && styles.used,
         pressed && styles.pressed,
       ]}
     >
-      <View style={styles.notch} />
-      <View style={[styles.seal, hidden && styles.hiddenSeal]}><Text style={styles.sealText}>C</Text></View>
-      <Text style={[styles.code, dense && styles.codeDense, hidden && styles.hiddenText]}>{hidden ? 'CT-??' : def?.code ?? 'CT-—'}</Text>
-      <Text style={[styles.name, compact && styles.nameCompact, dense && styles.nameDense, hidden && styles.hiddenText]} numberOfLines={compact ? 3 : 4}>
+      <View style={[styles.notch, micro && styles.notchMicro]} />
+      <View style={[styles.seal, micro && styles.sealMicro, hidden && styles.hiddenSeal]}><Text style={[styles.sealText, micro && styles.sealTextMicro]}>C</Text></View>
+      <Text style={[styles.code, dense && styles.codeDense, micro && styles.codeMicro, hidden && styles.hiddenText]}>{hidden ? 'CT-??' : def?.code ?? 'CT-—'}</Text>
+      <Text
+        style={[styles.name, compact && styles.nameCompact, dense && styles.nameDense, micro && styles.nameMicro, hidden && styles.hiddenText]}
+        numberOfLines={micro ? 2 : compact ? 3 : 4}
+        adjustsFontSizeToFit={micro}
+        minimumFontScale={0.72}
+      >
         {name}
       </Text>
       {!compact && (
@@ -54,8 +62,8 @@ export function NativeSecretCard({
           <Text style={[styles.body, dense && styles.bodyDense, hidden && styles.hiddenText]}>{hidden ? 'O arquivo será identificado quando seu gatilho disparar.' : def?.text}</Text>
         </>
       )}
-      {reserve > 0 && <Text style={styles.reserve}>+{reserve} em reserva</Text>}
-      {used && <Text style={styles.usedStamp}>UTILIZADA</Text>}
+      {reserve > 0 && <Text style={[styles.reserve, micro && styles.reserveMicro]}>+{reserve} em reserva</Text>}
+      {used && <Text style={[styles.usedStamp, micro && styles.usedStampMicro]}>UTILIZADA</Text>}
       {actionLabel && <Text style={[styles.action, dense && styles.actionDense]}>{actionLabel}</Text>}
     </Pressable>
   )
@@ -73,6 +81,7 @@ const styles = StyleSheet.create({
     ...shadow,
   },
   cardDense: { padding: 8 },
+  cardMicro: { padding: 4, borderWidth: 1.5, shadowOpacity: 0, elevation: 0 },
   hidden: { backgroundColor: colors.confidential, borderColor: colors.particle },
   used: { opacity: 0.82 },
   pressed: { transform: [{ translateY: 2 }], shadowOffset: { width: 1, height: 1 } },
@@ -87,6 +96,7 @@ const styles = StyleSheet.create({
     borderWidth: 2,
     backgroundColor: colors.paper,
   },
+  notchMicro: { top: -7, right: 12, width: 26, height: 14 },
   seal: {
     position: 'absolute',
     right: 10,
@@ -99,8 +109,10 @@ const styles = StyleSheet.create({
     borderColor: colors.approve,
     borderWidth: 2,
   },
+  sealMicro: { right: 6, top: 8, width: 22, height: 22, borderRadius: 12, borderWidth: 1.5 },
   hiddenSeal: { borderColor: colors.paperDeep },
   sealText: { color: colors.approve, fontFamily: fonts.display, fontSize: 14 },
+  sealTextMicro: { fontSize: 10 },
   code: {
     alignSelf: 'flex-start',
     color: colors.paperCard,
@@ -111,6 +123,7 @@ const styles = StyleSheet.create({
     paddingVertical: 2,
   },
   codeDense: { fontSize: 7, paddingHorizontal: 4, paddingVertical: 1 },
+  codeMicro: { fontSize: 6, paddingHorizontal: 3, paddingVertical: 1 },
   name: {
     width: '78%',
     color: colors.ink,
@@ -122,6 +135,7 @@ const styles = StyleSheet.create({
   },
   nameCompact: { width: '100%', fontSize: 10, lineHeight: 11, marginTop: 8, paddingRight: 28 },
   nameDense: { fontSize: 13, lineHeight: 13, marginTop: 7 },
+  nameMicro: { fontSize: 7.5, lineHeight: 8.5, marginTop: 3, paddingRight: 20 },
   hiddenText: { color: colors.paperCard },
   trigger: {
     color: colors.particle,
@@ -137,6 +151,7 @@ const styles = StyleSheet.create({
   body: { flex: 1, color: colors.ink, fontFamily: fonts.type, fontSize: 11, lineHeight: 15, marginTop: 9 },
   bodyDense: { fontSize: 8, lineHeight: 10, marginTop: 4 },
   reserve: { color: colors.entangle, fontFamily: fonts.bodyBold, fontSize: 9, marginTop: 5 },
+  reserveMicro: { position: 'absolute', right: 3, bottom: 2, color: colors.paperDeep, fontSize: 5, marginTop: 0 },
   usedStamp: {
     position: 'absolute',
     right: 8,
@@ -150,6 +165,7 @@ const styles = StyleSheet.create({
     paddingVertical: 3,
     transform: [{ rotate: '-7deg' }],
   },
+  usedStampMicro: { right: 3, bottom: 3, fontSize: 5, borderWidth: 1, paddingHorizontal: 2, paddingVertical: 1 },
   action: {
     color: colors.approve,
     fontFamily: fonts.display,

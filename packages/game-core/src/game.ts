@@ -2,6 +2,7 @@ import { DECK_LIST, getDef } from './cards'
 import { defaultMatchSetup } from './run'
 import type {
   CardDef,
+  AttackReadiness,
   Creature,
   Face,
   GameEvent,
@@ -76,10 +77,14 @@ export function expectedHealth(c: Creature): number {
 }
 
 export function canAttack(s: GameState, c: Creature): boolean {
-  if (c.owner !== s.active) return false
-  if (c.attacksUsed > 0) return false
-  if (c.summonedTurn === s.turn) return false
-  return true
+  return attackReadiness(s, c) === 'ready'
+}
+
+export function attackReadiness(s: GameState, c: Creature): AttackReadiness {
+  if (s.winner || c.owner !== s.active) return 'inactive'
+  if (c.attacksUsed > 0) return 'spent'
+  if (c.summonedTurn === s.turn) return 'preparing'
+  return 'ready'
 }
 
 /** Alvos válidos de ataque para uma criatura (regra da Barreira) */

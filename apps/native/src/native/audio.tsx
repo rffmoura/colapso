@@ -24,6 +24,27 @@ for (const source of Object.values(sources)) void preload(source)
 
 export type SoundId = keyof typeof sources
 
+/**
+ * Os WAVs têm amplitudes diferentes. O impacto é naturalmente o mais forte,
+ * então ele precisa de menos ganho para não dominar a sequência de combate.
+ */
+const soundVolumes: Record<SoundId, number> = {
+  select: 0.55,
+  deny: 0.52,
+  draw: 0.58,
+  play: 0.6,
+  spell: 0.56,
+  collapse: 0.62,
+  oscillate: 0.58,
+  hit: 0.46,
+  death: 0.5,
+  entangle: 0.55,
+  turn: 0.56,
+  secret: 0.48,
+  win: 0.58,
+  lose: 0.58,
+}
+
 interface AudioContextValue {
   play(sound: SoundId): void
 }
@@ -76,7 +97,9 @@ export function AudioProvider({ children }: { children: ReactNode }) {
   }, [])
 
   useEffect(() => {
-    for (const player of Object.values(players)) player.volume = sound ? 0.72 : 0
+    for (const [id, player] of Object.entries(players) as [SoundId, AudioPlayer][]) {
+      player.volume = sound ? soundVolumes[id] : 0
+    }
   }, [players, sound])
 
   useEffect(() => {

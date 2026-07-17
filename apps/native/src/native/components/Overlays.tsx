@@ -1,5 +1,4 @@
-import { getDef, getSecret, type Keyword, type Owner, type SecretId } from '@colapso/game-core'
-import type { HandCard } from '@colapso/game-core'
+import { getDef, getSecret, type HandCard, type Keyword, type Owner, type SecretId } from '@colapso/game-core'
 import { Modal, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native'
 import { colors, fonts, shadow } from '../theme'
 import { NativeCard } from './Card'

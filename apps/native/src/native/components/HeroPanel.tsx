@@ -11,6 +11,7 @@ interface HeroPanelProps {
   owner: Owner
   game: GameState
   compact: boolean
+  narrow?: boolean
   cue?: PresentationCue
   validTarget?: boolean
   onTarget?: () => void
@@ -22,6 +23,7 @@ export const HeroPanel = memo(function HeroPanel({
   owner,
   game,
   compact,
+  narrow,
   cue,
   validTarget,
   onTarget,
@@ -31,6 +33,7 @@ export const HeroPanel = memo(function HeroPanel({
   const side = game.sides[owner]
   const isAi = owner === 'ai'
   const impact = useSharedValue(0)
+  const damageProgress = useSharedValue(0)
   const damage = cue?.kind === 'damage' && cue.target.kind === 'hero' && cue.target.owner === owner ? cue.amount : null
 
   useEffect(() => {
@@ -40,21 +43,34 @@ export const HeroPanel = memo(function HeroPanel({
       withTiming(-1, { duration: 75, reduceMotion: ReduceMotion.System }),
       withTiming(0, { duration: 100, reduceMotion: ReduceMotion.System }),
     )
-  }, [damage, impact])
+    damageProgress.value = 0
+    damageProgress.value = withTiming(1, {
+      duration: 430,
+      reduceMotion: ReduceMotion.System,
+    })
+  }, [damage, damageProgress, impact])
 
   const animatedStyle = useAnimatedStyle(() => ({ transform: [{ translateX: impact.value * 5 }] }))
+  const damageAnimatedStyle = useAnimatedStyle(() => ({
+    opacity: Math.min(1, damageProgress.value * 6) * (1 - damageProgress.value),
+    transform: [
+      { translateY: -damageProgress.value * 20 },
+      { scale: 0.82 + damageProgress.value * 0.4 },
+    ],
+  }))
   const revealed = side.revealedSecrets.at(-1)
 
   return (
-    <Animated.View style={[styles.panel, compact && styles.panelCompact, isAi ? styles.ai : styles.player, validTarget && styles.target, animatedStyle]}>
+    <Animated.View style={[styles.panel, compact && styles.panelCompact, narrow && styles.panelNarrow, isAi ? styles.ai : styles.player, validTarget && styles.target, animatedStyle]}>
       <Pressable
         accessibilityRole={validTarget ? 'button' : undefined}
         accessibilityLabel={validTarget ? `Atacar diretamente ${isAi ? 'o Autômato' : 'o Observador'}` : undefined}
+        accessibilityHint={validTarget ? 'Alvo direto disponível' : undefined}
         onPress={validTarget ? onTarget : undefined}
         disabled={!validTarget}
-        style={styles.identity}
+        style={[styles.identity, narrow && styles.identityNarrow]}
       >
-        <View style={[styles.mark, isAi && styles.robotMark]}>
+        <View style={[styles.mark, narrow && styles.markNarrow, isAi && styles.robotMark]}>
           {isAi ? <Text style={styles.robot}>••{`\n`}▰</Text> : <QuantumMark size={compact ? 40 : 52} />}
         </View>
         <View style={styles.readout}>
@@ -67,7 +83,7 @@ export const HeroPanel = memo(function HeroPanel({
         </View>
       </Pressable>
 
-      <View style={styles.handCounter} accessibilityLabel={`${side.hand.length} fichas na mão`}>
+      <View style={[styles.handCounter, narrow && styles.handCounterNarrow]} accessibilityLabel={`${side.hand.length} fichas na mão`}>
         <Text style={styles.counterLabel}>MÃO</Text>
         <Text style={styles.counterValue}>{side.hand.length}</Text>
         <Text style={styles.counterLabel}>FICHAS</Text>
@@ -79,22 +95,25 @@ export const HeroPanel = memo(function HeroPanel({
             id={side.activeSecret.id}
             hidden={isAi}
             compact
-            width={compact ? 82 : 104}
+            micro={compact}
+            width={narrow ? 70 : compact ? 82 : 104}
             reserve={side.queuedSecrets.length}
             onPress={() => !isAi && onSecret(side.activeSecret!.id, false)}
           />
         ) : revealed ? (
-          <NativeSecretCard id={revealed} compact used width={compact ? 82 : 104} onPress={() => onSecret(revealed, true)} />
+          <NativeSecretCard id={revealed} compact micro={compact} used width={narrow ? 70 : compact ? 82 : 104} onPress={() => onSecret(revealed, true)} />
         ) : (
-          <View style={[styles.emptySecret, { width: compact ? 82 : 104 }]}><Text style={styles.emptyText}>SEM ARQUIVO</Text></View>
+          <View style={[styles.emptySecret, compact && styles.emptySecretCompact, { width: narrow ? 70 : compact ? 82 : 104 }]}><Text style={styles.emptyText}>SEM ARQUIVO</Text></View>
         )}
       </View>
 
-      <Pressable accessibilityRole="button" accessibilityLabel={`Consultar dados d${isAi ? 'o Autômato' : 'o Observador'}`} onPress={onInfo} style={styles.info} hitSlop={4}>
+      <Pressable accessibilityRole="button" accessibilityLabel={`Consultar dados d${isAi ? 'o Autômato' : 'o Observador'}`} onPress={onInfo} style={styles.info} hitSlop={8}>
         <Text style={styles.infoText}>i</Text>
       </Pressable>
 
-      {damage !== null && <View pointerEvents="none" style={styles.damage}><Text style={styles.damageText}>−{damage}</Text></View>}
+      {validTarget && <View pointerEvents="none" style={styles.directTarget}><Text style={styles.directTargetText}>ALVO DIRETO</Text></View>}
+
+      {damage !== null && <Animated.View pointerEvents="none" style={[styles.damage, damageAnimatedStyle]}><Text style={styles.damageText}>−{damage}</Text></Animated.View>}
     </Animated.View>
   )
 })
@@ -108,19 +127,21 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     gap: 8,
     padding: 7,
-    paddingRight: 43,
     backgroundColor: colors.paperCard,
     borderColor: colors.ink,
     borderWidth: 2,
     borderRadius: 8,
     ...shadow,
   },
-  panelCompact: { height: 62, minWidth: 330, maxWidth: 410, gap: 5, padding: 4, paddingRight: 34 },
+  panelCompact: { width: 410, height: 62, minWidth: 410, maxWidth: 410, gap: 5, padding: 4 },
+  panelNarrow: { width: 292, minWidth: 292, maxWidth: 292, gap: 3 },
   ai: { borderTopColor: colors.particle, borderTopWidth: 5 },
   player: { borderTopColor: colors.wave, borderTopWidth: 5 },
-  target: { borderColor: colors.energy, borderWidth: 4 },
+  target: { borderColor: colors.particle, backgroundColor: '#F8EDE2', transform: [{ translateY: 2 }] },
   identity: { minWidth: 190, flex: 1, flexDirection: 'row', alignItems: 'center', gap: 7 },
+  identityNarrow: { minWidth: 126, gap: 3 },
   mark: { width: 55, height: 55, alignItems: 'center', justifyContent: 'center' },
+  markNarrow: { width: 42, height: 42 },
   robotMark: { borderColor: colors.ink, borderWidth: 2, borderRadius: 25, backgroundColor: colors.paperDim },
   robot: { color: colors.particle, fontFamily: fonts.display, fontSize: 13, lineHeight: 13, textAlign: 'center' },
   readout: { flex: 1, minWidth: 0 },
@@ -140,15 +161,15 @@ const styles = StyleSheet.create({
     borderRadius: 3,
     backgroundColor: colors.paperDim,
   },
+  handCounterNarrow: { width: 38 },
   counterLabel: { color: colors.inkSoft, fontFamily: fonts.type, fontSize: 6, letterSpacing: 1 },
   counterValue: { color: colors.ink, fontFamily: fonts.display, fontSize: 19, lineHeight: 21 },
-  secretSlot: { justifyContent: 'center' },
+  secretSlot: { flexShrink: 0, justifyContent: 'center' },
   emptySecret: { height: 53, alignItems: 'center', justifyContent: 'center', borderColor: colors.inkSoft, borderWidth: 1, borderStyle: 'dashed' },
+  emptySecretCompact: { height: 48 },
   emptyText: { color: colors.inkSoft, fontFamily: fonts.type, fontSize: 7 },
   info: {
-    position: 'absolute',
-    right: 5,
-    top: 5,
+    flexShrink: 0,
     width: 29,
     height: 29,
     alignItems: 'center',
@@ -159,6 +180,8 @@ const styles = StyleSheet.create({
     backgroundColor: colors.paperCard,
   },
   infoText: { color: colors.ink, fontFamily: fonts.display, fontSize: 13 },
+  directTarget: { position: 'absolute', right: 12, bottom: -10, paddingHorizontal: 8, paddingVertical: 3, borderColor: colors.particle, borderWidth: 1.5, backgroundColor: colors.paperCard, transform: [{ rotate: '1deg' }] },
+  directTargetText: { color: colors.particle, fontFamily: fonts.display, fontSize: 7, letterSpacing: 0.6 },
   damage: { position: 'absolute', left: 96, top: 14 },
   damageText: { color: colors.particle, fontFamily: fonts.display, fontSize: 25, textShadowColor: colors.paperCard, textShadowRadius: 2 },
 })

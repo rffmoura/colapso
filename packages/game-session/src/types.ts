@@ -40,6 +40,17 @@ type EventCue<Event extends GameEvent = GameEvent> = Event extends GameEvent
 export type PresentationCue =
   | EventCue
   | (CueBase & { kind: 'attack'; attackerUid: number; target: TargetRef })
+  | (CueBase & {
+      kind: 'cardCommit'
+      owner: Owner
+      handUid: number
+      defId: string
+      destination: 'board' | 'protocol'
+    })
+  | (CueBase & {
+      kind: 'aiDecision'
+      action: 'playCreature' | 'spell' | 'heropower' | 'attack'
+    })
   | (CueBase & { kind: 'protocolReveal'; owner: Owner; defId: string })
   | (CueBase & { kind: 'feedback'; target: TargetRef | null; message: string; tone: 'info' | 'deny' })
   | (CueBase & { kind: 'runRestored'; phase: Extract<SessionPhase, 'draft' | 'briefing' | 'reward'> })
@@ -72,6 +83,8 @@ export type GameCommand =
   | { type: 'TOGGLE_HERO_POWER' }
   | { type: 'SELECT_CREATURE'; uid: number }
   | { type: 'SELECT_HERO'; owner: Owner }
+  | { type: 'ATTACK_TARGET'; attackerUid: number; target: TargetRef }
+  | { type: 'PLAY_CARD_TO_TARGET'; handUid: HandCard['uid']; target: TargetRef }
   | { type: 'CHOOSE_FACE'; face: 0 | 1 }
   | { type: 'CANCEL_SELECTION' }
   | { type: 'END_TURN' }

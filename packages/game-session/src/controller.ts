@@ -50,11 +50,13 @@ import type {
 } from './types'
 
 export const RUN_CHECKPOINT_KEY = 'colapso.run-checkpoint.v1'
+const PRESENTATION_WATCHDOG_MS = 4000
 
 const BLOCKING_EVENTS = new Set<GameEvent['t']>([
   'summon',
   'collapse',
   'damage',
+  'death',
   'spell',
   'secretReveal',
   'turn',
@@ -67,6 +69,7 @@ export class GameSessionController {
   private state: GameSessionState
   private readonly listeners = new Set<Listener>()
   private readonly blockers = new Map<number, () => void>()
+  private readonly presentationWatchdogs = new Map<number, ReturnType<typeof setTimeout>>()
   private readonly random: RandomSource
   private readonly storage?: StorageAdapter
   private readonly autoAcknowledge: boolean
@@ -137,6 +140,12 @@ export class GameSessionController {
       case 'SELECT_HERO':
         await this.selectTarget({ kind: 'hero', owner: command.owner })
         break
+      case 'ATTACK_TARGET':
+        await this.attackTarget(command.attackerUid, command.target)
+        break
+      case 'PLAY_CARD_TO_TARGET':
+        await this.playCardToTarget(command.handUid, command.target)
+        break
       case 'CHOOSE_FACE':
         await this.chooseFace(command.face)
         break
@@ -147,6 +156,9 @@ export class GameSessionController {
   }
 
   ackPresentation(id: number) {
+    const watchdog = this.presentationWatchdogs.get(id)
+    if (watchdog) clearTimeout(watchdog)
+    this.presentationWatchdogs.delete(id)
     const resolve = this.blockers.get(id)
     this.blockers.delete(id)
     const cues = this.state.cues.filter((cue) => cue.presentationId !== id)
@@ -160,6 +172,8 @@ export class GameSessionController {
   }
 
   private cancelPresentations() {
+    for (const watchdog of this.presentationWatchdogs.values()) clearTimeout(watchdog)
+    this.presentationWatchdogs.clear()
     for (const resolve of this.blockers.values()) resolve()
     this.blockers.clear()
     this.patch({ cues: [] })
@@ -172,6 +186,10 @@ export class GameSessionController {
       waiter = new Promise((resolve) => this.blockers.set(item.presentationId, resolve))
     }
     this.patch({ cues: [...this.state.cues, item] })
+    this.presentationWatchdogs.set(
+      item.presentationId,
+      setTimeout(() => this.ackPresentation(item.presentationId), PRESENTATION_WATCHDOG_MS),
+    )
     if (this.autoAcknowledge) this.ackPresentation(item.presentationId)
     if (waiter) await waiter
   }
@@ -361,6 +379,20 @@ export class GameSessionController {
     await this.applyStep(resolveCombat(this.state.game, attackerUid, target))
   }
 
+  private async presentCardCommit(owner: Owner, handUid: number, destination: 'board' | 'protocol') {
+    const card = this.state.game.sides[owner].hand.find((item) => item.uid === handUid)
+    if (!card) return false
+    await this.present({
+      kind: 'cardCommit',
+      owner,
+      handUid,
+      defId: card.defId,
+      destination,
+      blocking: true,
+    })
+    return true
+  }
+
   private async spellSequence(
     owner: Owner,
     handUid: number,
@@ -369,10 +401,11 @@ export class GameSessionController {
     face?: 0 | 1,
   ) {
     const defId = this.state.game.sides[owner].hand.find((card) => card.uid === handUid)?.defId
+    if (!defId || !(await this.presentCardCommit(owner, handUid, 'protocol'))) return
     const paid = paySpell(this.state.game, owner, handUid)
     if (paid.state === this.state.game) return
     await this.applyStep(paid, owner === 'ai' ? new Set(['spell']) : new Set())
-    if (this.state.game.winner || !defId) return
+    if (this.state.game.winner) return
     if (owner === 'ai') {
       await this.present({ kind: 'protocolReveal', owner, defId, blocking: true })
     }
@@ -449,6 +482,7 @@ export class GameSessionController {
 
     if (def.type === 'criatura') {
       this.patch({ busy: true, selection: null })
+      await this.presentCardCommit('player', handUid, 'board')
       await this.applyStep(playCreature(this.state.game, 'player', handUid, () => this.random.next()))
       this.patch({ busy: false })
       await this.checkEnd()
@@ -470,6 +504,19 @@ export class GameSessionController {
       return
     }
     this.patch({ selection })
+  }
+
+  private async playCardToTarget(handUid: number, target: TargetRef) {
+    if (this.state.busy || this.state.phase !== 'game' || this.state.game.active !== 'player') return
+    const card = this.state.game.sides.player.hand.find((item) => item.uid === handUid)
+    if (!card || !canPlay(this.state.game, 'player', handUid)) return
+    const def = getDef(card.defId)
+    if (def.type !== 'feitico' || !def.spell || ['flutuacao', 'decoerencia'].includes(def.spell)) return
+
+    const selection: SessionSelection = { type: 'spell', handUid, spell: def.spell, collected: [] }
+    if (!validTargetKeys({ game: this.state.game, selection }).has(targetKey(target))) return
+    this.patch({ selection })
+    await this.selectTarget(target)
   }
 
   private async toggleHeroPower() {
@@ -574,6 +621,18 @@ export class GameSessionController {
     }
   }
 
+  private async attackTarget(attackerUid: number, target: TargetRef) {
+    if (this.state.busy || this.state.phase !== 'game' || this.state.game.active !== 'player') return
+    const attacker = findCreature(this.state.game, attackerUid)
+    if (!attacker || !canAttack(this.state.game, attacker)) return
+    if (!validAttackTargets(this.state.game, attacker).some((candidate) => targetKey(candidate) === targetKey(target))) return
+
+    this.patch({ busy: true, selection: null })
+    await this.attackSequence(attackerUid, target)
+    this.patch({ busy: false })
+    await this.checkEnd()
+  }
+
   private async chooseFace(face: 0 | 1) {
     const selection = this.state.selection
     if (!selection) return
@@ -609,8 +668,10 @@ export class GameSessionController {
     for (let guard = 0; guard < 40 && !this.state.game.winner; guard++) {
       const action = decideAi(this.state.game)
       if (action.kind === 'end') break
+      await this.present({ kind: 'aiDecision', action: action.kind, blocking: true })
       switch (action.kind) {
         case 'playCreature':
+          await this.presentCardCommit('ai', action.handUid, 'board')
           await this.applyStep(
             playCreature(this.state.game, 'ai', action.handUid, () => this.random.next()),
           )

@@ -58,15 +58,26 @@ export const commonStyles = StyleSheet.create({
   },
 })
 
-export function responsiveMetrics(height: number) {
+export function responsiveMetrics(height: number, width = 1024) {
   const compact = height < 500
+  const narrow = compact && width < 760
+  const compactScale = Math.max(0.88, Math.min(1.04, width / 844))
+  const actionControlSize = compact ? (narrow ? 54 : 60) : 76
+  const handCardHeight = compact ? Math.max(202, Math.round(208 * compactScale)) : 252
   return {
     compact,
+    narrow,
     gutter: compact ? 6 : 12,
     heroHeight: compact ? 64 : 92,
-    boardCardWidth: compact ? 82 : 110,
-    boardCardHeight: compact ? 102 : 142,
-    handCardWidth: compact ? 100 : 136,
-    handCardHeight: compact ? 140 : 192,
+    boardCardWidth: compact ? Math.round(100 * compactScale) : 122,
+    boardCardHeight: compact ? Math.round(112 * compactScale) : 158,
+    handCardWidth: compact ? Math.round(158 * compactScale) : 190,
+    handCardHeight,
+    handCardOverlap: compact ? Math.round((narrow ? 58 : 48) * compactScale) : 62,
+    handAreaHeight: compact ? handCardHeight + 108 : 384,
+    collapsedHandAreaHeight: compact ? 64 : 92,
+    controlDockWidth: compact ? Math.round(82 * compactScale) : 106,
+    actionControlSize,
+    observeDockWidth: actionControlSize,
   }
 }

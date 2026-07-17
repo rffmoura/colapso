@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest'
 import { getDef } from './cards'
 import {
+  attackReadiness,
   canAttack,
   collapseCreature,
   damageTarget,
@@ -227,6 +228,26 @@ describe('contramedidas', () => {
 })
 
 describe('regressões e Diretrizes', () => {
+  it('expõe prontidão de ataque sem duplicar as regras na interface', () => {
+    const base = newGame(setup())
+    const subject = creature('gato', 919, 'player', 0)
+    base.board.player.push(subject)
+
+    subject.summonedTurn = base.turn
+    expect(attackReadiness(base, subject)).toBe('preparing')
+    expect(canAttack(base, subject)).toBe(false)
+
+    subject.summonedTurn = base.turn - 1
+    expect(attackReadiness(base, subject)).toBe('ready')
+    expect(canAttack(base, subject)).toBe(true)
+
+    subject.attacksUsed = 1
+    expect(attackReadiness(base, subject)).toBe('spent')
+
+    base.active = 'ai'
+    expect(attackReadiness(base, subject)).toBe('inactive')
+  })
+
   it('mantém Barreira, Fantasma, preparação e colapso forçado', () => {
     const base = newGame(setup())
     const attacker = creature('foton', 920, 'player', 0)
